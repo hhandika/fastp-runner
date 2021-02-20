@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::{App, AppSettings, Arg};
 
+use crate::io;
 use crate::wrapper;
 
 pub fn get_cli(version: &str) {
@@ -18,6 +19,20 @@ pub fn get_cli(version: &str) {
 
         .subcommand(
             App::new("clean")
+                .about("Uses for adapter cleaning")
+                .arg(
+                    Arg::with_name("input")
+                        .short("i")
+                        .long("input")
+                        .help("Inputs a config file")
+                        // .conflicts_with_all(&[ "check"])
+                        .takes_value(true)
+                        .value_name("INPUT")
+                )  
+        )
+
+        .subcommand(
+            App::new("test")
                 .about("Uses for adapter cleaning")
                 .arg(
                     Arg::with_name("input")
@@ -46,6 +61,13 @@ pub fn get_cli(version: &str) {
 
         ("check", Some(_)) => {
             wrapper::check_fastp();
+        }
+
+        ("test", Some(test_matches)) => {
+            if test_matches.is_present("input") {
+                let path = PathBuf::from(test_matches.value_of("input").unwrap());
+                io::get_sequences(&path);
+            }
         }
         _ => unreachable!("UNREACHABLE COMMANDS!"),
     };

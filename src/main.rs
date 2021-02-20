@@ -3,6 +3,8 @@
 // MIT
 
 mod cli;
+mod io;
+mod parser;
 mod wrapper;
 
 use clap::crate_version;
