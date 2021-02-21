@@ -56,7 +56,7 @@ impl RawSeq {
             });
     }
 
-    fn get_adapter(&mut self, adapter: &str) {
+    fn get_adapter_single(&mut self, adapter: &str) {
         self.adapter_i5 = String::from(adapter);
     }
 
@@ -80,7 +80,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
 
             seq.get_reads(&reads);
             seq.get_id(&id);
-            seq.get_adapter(&lines[1]);
+            seq.get_adapter_single(&lines[1]);
             seq.get_dir();
             raw_seqs.push(seq);
             lcounts += 1;
