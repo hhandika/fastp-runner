@@ -20,5 +20,5 @@ fn main() {
     let duration = time.elapsed();
 
     println!("Execution time: {:?}", duration);
-    println!("Thank you for using fastp-runner v{}  😊", &version);
+    println!("Thank you for using fastp-runner v{} 😊", &version);
 }
