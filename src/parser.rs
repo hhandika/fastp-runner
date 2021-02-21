@@ -7,7 +7,8 @@ use glob::{glob_with, MatchOptions};
 
 pub struct RawSeq {
     input: PathBuf,
-    pub dir: PathBuf,
+    // pub id: String, 
+    pub dir: PathBuf, // Use for directory names
     pub read_1: PathBuf,
     pub read_2: PathBuf,
     pub adapter: String,
@@ -67,9 +68,9 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
             let lines = split_csv_lines(&line);
             let reads = glob_raw_reads(&input, &lines[0], mid_id);
 
-            seq.get_dir();
             seq.get_reads(&reads);
             seq.get_adapter(&lines[1]);
+            seq.get_dir();
             raw_seqs.push(seq);
             lcounts += 1;
         });
@@ -87,14 +88,7 @@ fn split_csv_lines(lines: &str) -> Vec<String> {
 }
 
 fn glob_raw_reads(path: &PathBuf, id: &str, mid_id: bool) -> Vec<PathBuf> {
-    let parent = path.parent().unwrap();
-    let mut pat_id = format!("*?{}?*", id);
-
-    if !mid_id {
-        pat_id = format!("{}?*", id);
-    }
-
-    let patterns = String::from(parent.join(pat_id).to_string_lossy());
+    let patterns = get_patterns(path, id, mid_id);
     
     let opts = MatchOptions {
         case_sensitive: false,
@@ -105,6 +99,17 @@ fn glob_raw_reads(path: &PathBuf, id: &str, mid_id: bool) -> Vec<PathBuf> {
         .unwrap()
         .filter_map(|ok| ok.ok())
         .collect()
+}
+
+fn get_patterns(path: &PathBuf, id: &str, mid_id: bool) -> String {
+    let parent = path.parent().unwrap();
+    let mut pat_id = format!("*?{}?*", id);
+
+    if !mid_id {
+        pat_id = format!("{}?*", id);
+    }
+
+    String::from(parent.join(pat_id).to_string_lossy())
 }
 
 
