@@ -32,7 +32,7 @@ pub fn get_cli(version: &str) {
         )
 
         .subcommand(
-            App::new("test")
+            App::new("dry")
                 .about("Uses for adapter cleaning")
                 .arg(
                     Arg::with_name("input")
@@ -63,7 +63,7 @@ pub fn get_cli(version: &str) {
             wrapper::check_fastp();
         }
 
-        ("test", Some(test_matches)) => {
+        ("dry", Some(test_matches)) => {
             if test_matches.is_present("input") {
                 let path = PathBuf::from(test_matches.value_of("input").unwrap());
                 io::dry_run(&path);
