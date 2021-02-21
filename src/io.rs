@@ -12,7 +12,7 @@ pub fn dry_run(input: &PathBuf) {
             println!("Dir\t: {}", reads.dir.to_string_lossy());
             println!("Read 1\t: {}", reads.read_1.to_string_lossy());
             println!("Read 2\t: {}", reads.read_2.to_string_lossy());
-            println!("Adapter\t: {}", reads.adapter);
+            println!("Adapter\t: {}", reads.adapter_i5);
             println!();
         });
 }

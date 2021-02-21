@@ -9,7 +9,8 @@ pub struct RawSeq {
     pub id: String, 
     pub read_1: PathBuf,
     pub read_2: PathBuf,
-    pub adapter: String,
+    pub adapter_i5: String,
+    pub adapter_i7: Option<String>,
     pub dir: PathBuf,
 }
 
@@ -20,7 +21,8 @@ impl RawSeq {
             dir: PathBuf::new(),
             read_1: PathBuf::new(),
             read_2: PathBuf::new(),
-            adapter: String::new(),
+            adapter_i5: String::new(),
+            adapter_i7: None,
         }
     }
 
@@ -44,20 +46,18 @@ impl RawSeq {
     fn get_reads(&mut self, reads: &[PathBuf]) {
         reads.iter()
             .for_each(|reads| {
-                match reads.to_string_lossy() {
-                    s if s.contains("Read1") => self.read_1 = PathBuf::from(reads),
-                    s if s.contains("R1") => self.read_1 = PathBuf::from(reads),
-                    s if s.contains("READ1") => self.read_1 = PathBuf::from(reads),
-                    s if s.contains("Read2") => self.read_2 = PathBuf::from(reads),
-                    s if s.contains("R2") => self.read_2 = PathBuf::from(reads),
-                    s if s.contains("READ2") => self.read_2 = PathBuf::from(reads),
+                match reads.to_string_lossy().to_lowercase() {
+                    s if s.contains("read1") => self.read_1 = PathBuf::from(reads),
+                    s if s.contains("_r1") => self.read_1 = PathBuf::from(reads),
+                    s if s.contains("read2") => self.read_2 = PathBuf::from(reads),
+                    s if s.contains("_r2") => self.read_2 = PathBuf::from(reads),
                     _ => (),
                 }
             });
     }
 
     fn get_adapter(&mut self, adapter: &str) {
-        self.adapter = String::from(adapter);
+        self.adapter_i5 = String::from(adapter);
     }
 
 }
@@ -165,7 +165,7 @@ mod test {
                 let dir = input.parent().unwrap();
                 assert_eq!(dir.join("test_1_cde_R1.fastq"), s.read_1);
                 assert_eq!(dir.join("test_1_cde_R2.fastq"), s.read_2);
-                assert_eq!("AGTCT", s.adapter);
+                assert_eq!("AGTCT", s.adapter_i5);
             });
     }
 
@@ -180,7 +180,7 @@ mod test {
             let dir = input.parent().unwrap();
             assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
             assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
-            assert_eq!("ATGTCTCTCTATATATACT", s.adapter);
+            assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5);
         });
     }
 
