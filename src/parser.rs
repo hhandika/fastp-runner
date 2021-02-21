@@ -64,12 +64,18 @@ impl RawSeq {
     }
 
     fn get_adapter_dual(&mut self, adapter_i5: &str, adapter_i7: &str) {
-        self.adapter_i5 = String::from(adapter_i5);
-
+        let adapter_i5 = String::from(adapter_i5.trim());
         let adapter_i7 = String::from(adapter_i7.trim());
 
-        if !adapter_i7.is_empty() {
+        if !adapter_i5.is_empty() && !adapter_i7.is_empty() {
+            self.adapter_i5 = String::from(adapter_i5);
             self.adapter_i7 = Some(adapter_i7);
+        } else if !adapter_i5.is_empty() && adapter_i7.is_empty() {
+            self.adapter_i5 = String::from(adapter_i5);
+        } else if adapter_i5.is_empty() && adapter_i7.is_empty(){
+            self.get_adapter_auto();
+        } else {
+            self.adapter_i5 = String::from(adapter_i5);
         }
     }
 

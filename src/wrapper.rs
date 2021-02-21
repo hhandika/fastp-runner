@@ -9,7 +9,7 @@ use crate::parser::RawSeq;
 
 
 pub fn clean_reads(reads: &[RawSeq]) {
-    let dir = "clean_reads";
+    let dir = Path::new("clean_reads");
     fs::create_dir_all(dir)
         .expect("CAN'T CREATE CLEAN READ DIR");
 
@@ -17,17 +17,18 @@ pub fn clean_reads(reads: &[RawSeq]) {
         .for_each(|r| {
             print!("Processing {:?}", r.dir);
             match r.adapter_i7.as_ref() { // Check if i7 contains sequence
-                Some(_) => call_fastp(&r, true), // if yes -> dual index
-                None => call_fastp(&r, false),
+                Some(_) => call_fastp(&dir, &r, true), // if yes -> dual index
+                None => call_fastp(&dir, &r, false),
             };
 
             println!("Done!");
         })
 } 
 
-fn call_fastp(input: &RawSeq, is_dual_idx: bool) {
-    let output_r1 = get_out_fnames(&input.dir, &input.read_1);
-    let output_r2 = get_out_fnames(&input.dir, &input.read_2);
+fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
+    let seq_dir = dir.join(&input.dir);
+    let output_r1 = get_out_fnames(&seq_dir, &input.read_1);
+    let output_r2 = get_out_fnames(&seq_dir, &input.read_2);
 
     if is_dual_idx {
         let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
@@ -38,8 +39,8 @@ fn call_fastp(input: &RawSeq, is_dual_idx: bool) {
         call_fastp_single_idx(input, &output_r1, &output_r2).unwrap();
     }
 
-    try_creating_symlink(&input.read_1, &input.read_2);
-    reorganize_reports();
+    try_creating_symlink(&seq_dir, &input.read_1, &input.read_2);
+    reorganize_reports(&seq_dir);
 }
 
 fn call_fastp_auto_idx(
@@ -97,7 +98,7 @@ fn call_fastp_dual_idx(
     output_r2: &PathBuf,
     adapter_i7: &str
 ) -> Result<()> {
-    
+
     let mut out = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
@@ -119,25 +120,23 @@ fn call_fastp_dual_idx(
     Ok(())
 }
 
-fn get_out_fnames(seq_dir: &PathBuf, fnames: &PathBuf) -> PathBuf {
-    let clean_dir = Path::new("clean_reads");
-    let outdir = clean_dir.join(seq_dir).join("trimmed-reads");
+fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
+    let outdir = seq_dir.join("trimmed-reads");
     fs::create_dir_all(&outdir).unwrap();
 
     outdir.join(fnames.file_name().unwrap())
 }
 
-fn try_creating_symlink(read_1: &PathBuf, read_2: &PathBuf) {
+fn try_creating_symlink(dir: &Path, read_1: &Path, read_2: &Path) {
     let os = consts::OS;
     match os {
-        "linux" | "macos" => create_symlink(&read_1, &read_2).unwrap(),
+        "linux" | "macos" => create_symlink(dir, read_1, read_2).unwrap(),
         "windows" => println!("The program can't create symlink in Windows"),
         _ => ()
     };
 }
 
-fn create_symlink(read_1: &PathBuf, read_2: &PathBuf) -> Result<()> {
-    let dir = Path::new("clean_reads");
+fn create_symlink(dir: &Path, read_1: &Path, read_2: &Path) -> Result<()> {
     let symdir = dir.join("raw_reads");
     fs::create_dir_all(&symdir).unwrap();
 
@@ -150,12 +149,11 @@ fn create_symlink(read_1: &PathBuf, read_2: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-fn reorganize_reports() {
+fn reorganize_reports(dir: &Path) {
     let fastp_html = PathBuf::from("fastp.html");
     let fastp_json = PathBuf::from("fastp.json");
 
-    let dir = Path::new("clean_reads");
-    let parent = dir.parent().unwrap().join("fastp_reports");
+    let parent = dir.join("fastp_reports");
 
     fs::create_dir_all(&parent).unwrap();
 
