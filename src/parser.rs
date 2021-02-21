@@ -158,8 +158,8 @@ mod test {
         seq.iter()
         .for_each(|s| {
             let dir = PathBuf::from(&s.dir);
-            assert_eq!(dir.join("some_animals_MNM12345_R1.fastq.gz"), s.read_1);
-            assert_eq!(dir.join("some_animals_MNM12345_R2.fastq.gz"), s.read_2);
+            assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
+            assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
             assert_eq!("ATGTCTCTCTATATATACT", s.adapter);
         });
     }
