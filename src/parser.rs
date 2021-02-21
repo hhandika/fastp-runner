@@ -189,12 +189,12 @@ mod test {
         let seq = parse_csv(&input, true);
     
         seq.iter()
-        .for_each(|s| {
-            let dir = input.parent().unwrap();
-            assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
-            assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
-            assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5);
-        });
+            .for_each(|s| {
+                let dir = input.parent().unwrap();
+                assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
+                assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
+                assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5);
+            });
     }
 
     #[test]
@@ -205,13 +205,13 @@ mod test {
         let i5 = "ATGTCTCTCTATATATACT";
         let i7 = String::from("ATGTCTCTCTATATATGCT");
         seq.iter()
-        .for_each(|s| {
-            let dir = input.parent().unwrap();
-            assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
-            assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
-            assert_eq!(i5, s.adapter_i5);
-            assert_eq!(true, s.adapter_i7.is_some());
-            assert_eq!(i7, String::from(s.adapter_i7.as_ref().unwrap()))
+            .for_each(|s| {
+                let dir = input.parent().unwrap();
+                assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
+                assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
+                assert_eq!(i5, s.adapter_i5);
+                assert_eq!(true, s.adapter_i7.is_some());
+                assert_eq!(i7, String::from(s.adapter_i7.as_ref().unwrap()))
         });
     }
 
