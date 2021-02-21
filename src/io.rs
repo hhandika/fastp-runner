@@ -13,5 +13,5 @@ pub fn dry_run(input: &PathBuf) {
             println!("Read 2\t: {}", reads.read_2.to_string_lossy());
             println!("Adapter\t: {}", reads.adapter);
             println!();
-        })
+        });
 }
