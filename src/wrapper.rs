@@ -17,17 +17,60 @@ pub fn clean_reads(reads: &[RawSeq]) {
         .for_each(|r| {
             print!("Processing {:?}", r.dir);
             match r.adapter_i7.as_ref() { // Check if i7 contains sequence
-                Some(_) => call_fastp_dual_idx(r), // if yes -> dual index
-                None => call_fastp_single_idx(r)
+                Some(_) => call_fastp(&r, true), // if yes -> dual index
+                None => call_fastp(&r, false),
             };
 
             println!("Done!");
         })
 } 
 
-pub fn call_fastp_single_idx(input: &RawSeq) {
+fn call_fastp(input: &RawSeq, is_dual_idx: bool) {
     let output_r1 = get_out_fnames(&input.dir, &input.read_1);
     let output_r2 = get_out_fnames(&input.dir, &input.read_2);
+
+    if is_dual_idx {
+        let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
+        call_fastp_dual_idx(input, &output_r1, &output_r2, &adapter_i7).unwrap();
+    } else if input.auto_idx {
+        call_fastp_auto_idx(&input, &output_r1, &output_r2).unwrap();
+    } else {
+        call_fastp_single_idx(input, &output_r1, &output_r2).unwrap();
+    }
+
+    try_creating_symlink(&input.read_1, &input.read_2);
+    reorganize_reports();
+}
+
+fn call_fastp_auto_idx(
+    input: &RawSeq, 
+    output_r1: &PathBuf, 
+    output_r2: &PathBuf) 
+-> Result<()> {
+
+    let mut out = Command::new("fastp")
+        .arg("-i")
+        .arg(input.read_1.clone())
+        .arg("-I")
+        .arg(input.read_2.clone())
+        .arg("--detect_adapter_for_pe")
+        .arg("-o")
+        .arg(output_r1)
+        .arg("-O")
+        .arg(output_r2)
+        .spawn()
+        .unwrap();
+
+    out.wait().unwrap();
+
+    Ok(())
+}
+
+fn call_fastp_single_idx(
+    input: &RawSeq, 
+    output_r1: &PathBuf, 
+    output_r2: &PathBuf) 
+-> Result<()> {
 
     let mut out = Command::new("fastp")
         .arg("-i")
@@ -44,16 +87,17 @@ pub fn call_fastp_single_idx(input: &RawSeq) {
         .unwrap();
 
     out.wait().unwrap();
-    try_creating_symlink(&input.read_1, &input.read_2);
-    reorganize_reports();
+
+    Ok(())
 }
 
-pub fn call_fastp_dual_idx(input: &RawSeq) {
-    let output_r1 = get_out_fnames(&input.dir, &input.read_1);
-    let output_r2 = get_out_fnames(&input.dir, &input.read_2);
-
-    let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
-
+fn call_fastp_dual_idx(
+    input: &RawSeq, 
+    output_r1: &PathBuf, 
+    output_r2: &PathBuf,
+    adapter_i7: &str
+) -> Result<()> {
+    
     let mut out = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
@@ -71,9 +115,8 @@ pub fn call_fastp_dual_idx(input: &RawSeq) {
         .unwrap();
 
     out.wait().unwrap();
-    try_creating_symlink(&input.read_1, &input.read_2);
-    reorganize_reports();
 
+    Ok(())
 }
 
 fn get_out_fnames(seq_dir: &PathBuf, fnames: &PathBuf) -> PathBuf {
@@ -81,7 +124,7 @@ fn get_out_fnames(seq_dir: &PathBuf, fnames: &PathBuf) -> PathBuf {
     let outdir = clean_dir.join(seq_dir).join("trimmed-reads");
     fs::create_dir_all(&outdir).unwrap();
 
-    outdir.join(fnames)
+    outdir.join(fnames.file_name().unwrap())
 }
 
 fn try_creating_symlink(read_1: &PathBuf, read_2: &PathBuf) {

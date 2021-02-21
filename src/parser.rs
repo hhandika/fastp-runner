@@ -13,6 +13,7 @@ pub struct RawSeq {
     pub adapter_i5: String,
     pub adapter_i7: Option<String>,
     pub dir: PathBuf,
+    pub auto_idx: bool,
 }
 
 impl RawSeq {
@@ -24,6 +25,7 @@ impl RawSeq {
             read_2: PathBuf::new(),
             adapter_i5: String::new(),
             adapter_i7: None,
+            auto_idx: false,
         }
     }
 
@@ -63,7 +65,16 @@ impl RawSeq {
 
     fn get_adapter_dual(&mut self, adapter_i5: &str, adapter_i7: &str) {
         self.adapter_i5 = String::from(adapter_i5);
-        self.adapter_i7 = Some(String::from(adapter_i7));
+
+        let adapter_i7 = String::from(adapter_i7.trim());
+
+        if !adapter_i7.is_empty() {
+            self.adapter_i7 = Some(adapter_i7);
+        }
+    }
+
+    fn get_adapter_auto(&mut self) {
+        self.auto_idx = true;
     }
 
 }
@@ -87,14 +98,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
             seq.get_reads(&reads);
             seq.get_id(&id);
             seq.get_dir();
-
-            match lines.len() {
-                2 => seq.get_adapter_single(&lines[1]),
-                3 => seq.get_adapter_dual(&lines[1], &lines[2]),
-                _ => panic!("Unexpected cvs columns. It should be \
-                    2 columns for single index and 3 column for \
-                    dual index. The app received {} columns", lines.len()),
-            };
+            get_adapters(&mut seq, &lines);
 
             raw_seqs.push(seq);
             lcounts += 1;
@@ -102,6 +106,26 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
 
     println!("Total files: {}", lcounts);
     raw_seqs
+}
+
+fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
+    let i5 = adapters[1].to_uppercase();
+    
+    match adapters.len() {
+        1 => seq.get_adapter_auto(),
+
+        2 => seq.get_adapter_single(&i5),
+        
+        3 => {
+            let i7 = adapters[2].to_uppercase();
+            seq.get_adapter_dual(&i5, &i7);
+        },
+
+        _ => panic!("Unexpected cvs columns. It should be \
+            2 columns for single index and 3 column for \
+            dual index. The app received {} columns", adapters.len()),
+    };
+
 }
 
 fn split_strings(lines: &str, csv: bool) -> Vec<String> {

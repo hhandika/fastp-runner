@@ -19,7 +19,13 @@ pub fn dry_run(input: &PathBuf) {
                     println!("Adapter i5\t: {}", r.adapter_i5);
                     println!("Adapter i7\t: {}", i7);
                 }
-                None => println!("Adapter\t\t: {}", r.adapter_i5),
+                None => {
+                    if r.auto_idx {
+                        println!("Adapter\t\t: AUTO-DETECT");
+                    } else {
+                        println!("Adapter\t\t: {}", r.adapter_i5);
+                    }
+                }
             };
 
             println!();
