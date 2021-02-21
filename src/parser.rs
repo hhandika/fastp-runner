@@ -60,6 +60,11 @@ impl RawSeq {
         self.adapter_i5 = String::from(adapter);
     }
 
+    fn get_adapter_dual(&mut self, adapter_i5: &str, adapter_i7: &str) {
+        self.adapter_i5 = String::from(adapter_i5);
+        self.adapter_i7 = Some(String::from(adapter_i7));
+    }
+
 }
 
 pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
@@ -80,8 +85,16 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
 
             seq.get_reads(&reads);
             seq.get_id(&id);
-            seq.get_adapter_single(&lines[1]);
             seq.get_dir();
+
+            match lines.len() {
+                2 => seq.get_adapter_single(&lines[1]),
+                3 => seq.get_adapter_dual(&lines[1], &lines[2]),
+                _ => panic!("Unexpected cvs columns. It should be \
+                    2 columns for single index and 3 column for \
+                    dual index. The program receives {} columns", lines.len()),
+            };
+
             raw_seqs.push(seq);
             lcounts += 1;
         });
@@ -181,6 +194,24 @@ mod test {
             assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
             assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
             assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5);
+        });
+    }
+
+    #[test]
+    fn parse_csv_dual_indexes_test() {
+        let input = PathBuf::from("test_files/dual_index_test.csv");
+
+        let seq = parse_csv(&input, true);
+        let i5 = "ATGTCTCTCTATATATACT";
+        let i7 = String::from("ATGTCTCTCTATATATGCT");
+        seq.iter()
+        .for_each(|s| {
+            let dir = input.parent().unwrap();
+            assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
+            assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
+            assert_eq!(i5, s.adapter_i5);
+            assert_eq!(true, s.adapter_i7.is_some());
+            assert_eq!(i7, String::from(s.adapter_i7.as_ref().unwrap()))
         });
     }
 
