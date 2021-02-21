@@ -25,10 +25,17 @@ pub fn get_cli(version: &str) {
                         .short("i")
                         .long("input")
                         .help("Inputs a config file")
-                        // .conflicts_with_all(&[ "check"])
                         .takes_value(true)
                         .value_name("INPUT")
-                )  
+                )
+                
+                .arg(
+                    Arg::with_name("left_id")
+                        .long("left")
+                        .help("A unique ID is at the start of filename")
+                        .takes_value(false)
+                        .value_name("INPUT")
+                ) 
         )
 
         .subcommand(
@@ -52,9 +59,13 @@ pub fn get_cli(version: &str) {
         ("clean", Some(clean_matches)) => {
 
             if clean_matches.is_present("input") {
-                    let path = PathBuf::from(clean_matches.value_of("input").unwrap());
-                    let adapter = "CAAGCAGAAGACGGCATACGAGATGCCATAGGTGACTGGAGTTCAGACGTGT";
-                    wrapper::run_fastp(&path, &adapter);
+                let path = PathBuf::from(clean_matches.value_of("input").unwrap());
+                let mut is_mid_id = true;
+
+                if clean_matches.is_present("left_id") {
+                    is_mid_id = false;
+                }
+                io::process_input(&path, is_mid_id);
             }  
 
         }

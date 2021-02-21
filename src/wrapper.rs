@@ -1,41 +1,118 @@
 use std::fs;
-use std::path::PathBuf;
+use std::env::consts;
+use std::os::unix;
+use std::io::Result;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub fn run_fastp(input: &PathBuf, adapter: &str) {
-    println!("Processing {:?}", input);
-    println!();
+use crate::parser::RawSeq;
 
-    let output = get_out_fnames(input);
+
+pub fn clean_reads(reads: &[RawSeq]) {
+    let dir = "clean_reads";
+    fs::create_dir_all(dir)
+        .expect("CAN'T CREATE CLEAN READ DIR");
+
+    reads.iter()
+        .for_each(|r| {
+            print!("Processing {:?}", r.dir);
+            match r.adapter_i7.as_ref() { // Check if i7 contains sequence
+                Some(_) => call_fastp_dual_idx(r), // if yes -> dual index
+                None => call_fastp_single_idx(r)
+            };
+
+            println!("Done!");
+        })
+} 
+
+pub fn call_fastp_single_idx(input: &RawSeq) {
+    let output_r1 = get_out_fnames(&input.dir, &input.read_1);
+    let output_r2 = get_out_fnames(&input.dir, &input.read_2);
+
     let mut out = Command::new("fastp")
         .arg("-i")
-        .arg(input)
+        .arg(input.read_1.clone())
+        .arg("-I")
+        .arg(input.read_2.clone())
+        .arg("--adapter_sequence")
+        .arg(input.adapter_i5.clone())
         .arg("-o")
-        .arg(&output)
-        .arg("-a")
-        .arg(adapter)
+        .arg(output_r1)
+        .arg("-O")
+        .arg(output_r2)
         .spawn()
         .unwrap();
 
     out.wait().unwrap();
-    reorganize_reports(input);
-
-    println!("Done!");
+    try_creating_symlink(&input.read_1, &input.read_2);
+    reorganize_reports();
 }
 
-fn get_out_fnames(input: &PathBuf) -> PathBuf {
-    let indir = input.parent().unwrap();
-    let outdir = indir.join("clean_reads");
+pub fn call_fastp_dual_idx(input: &RawSeq) {
+    let output_r1 = get_out_fnames(&input.dir, &input.read_1);
+    let output_r2 = get_out_fnames(&input.dir, &input.read_2);
+
+    let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
+
+    let mut out = Command::new("fastp")
+        .arg("-i")
+        .arg(input.read_1.clone())
+        .arg("-I")
+        .arg(input.read_2.clone())
+        .arg("--adapter_sequence")
+        .arg(input.adapter_i5.clone())
+        .arg("--adapter_sequence_r2")
+        .arg(adapter_i7)
+        .arg("-o")
+        .arg(output_r1)
+        .arg("-O")
+        .arg(output_r2)
+        .spawn()
+        .unwrap();
+
+    out.wait().unwrap();
+    try_creating_symlink(&input.read_1, &input.read_2);
+    reorganize_reports();
+
+}
+
+fn get_out_fnames(seq_dir: &PathBuf, fnames: &PathBuf) -> PathBuf {
+    let clean_dir = Path::new("clean_reads");
+    let outdir = clean_dir.join(seq_dir).join("trimmed-reads");
     fs::create_dir_all(&outdir).unwrap();
-    let fname = input.file_name().unwrap();
-    
-    outdir.join(fname)
+
+    outdir.join(fnames)
 }
 
-fn reorganize_reports(input: &PathBuf) {
+fn try_creating_symlink(read_1: &PathBuf, read_2: &PathBuf) {
+    let os = consts::OS;
+    match os {
+        "linux" | "macos" => create_symlink(&read_1, &read_2).unwrap(),
+        "windows" => println!("The program can't create symlink in Windows"),
+        _ => ()
+    };
+}
+
+fn create_symlink(read_1: &PathBuf, read_2: &PathBuf) -> Result<()> {
+    let dir = Path::new("clean_reads");
+    let symdir = dir.join("raw_reads");
+    fs::create_dir_all(&symdir).unwrap();
+
+    let path_r1 = symdir.join(read_1.file_name().unwrap());
+    let path_r2 = symdir.join(read_2.file_name().unwrap());
+
+    unix::fs::symlink(read_1, path_r1).unwrap();
+    unix::fs::symlink(read_2, path_r2).unwrap();
+
+    Ok(())
+}
+
+fn reorganize_reports() {
     let fastp_html = PathBuf::from("fastp.html");
     let fastp_json = PathBuf::from("fastp.json");
-    let parent = input.parent().unwrap().join("fastp_reports");
+
+    let dir = Path::new("clean_reads");
+    let parent = dir.parent().unwrap().join("fastp_reports");
 
     fs::create_dir_all(&parent).unwrap();
 

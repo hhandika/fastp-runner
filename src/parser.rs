@@ -5,6 +5,7 @@ use std::io::prelude::*;
 
 use glob::{glob_with, MatchOptions};
 
+#[derive(Clone)]
 pub struct RawSeq {
     pub id: String, 
     pub read_1: PathBuf,
@@ -119,7 +120,7 @@ fn glob_raw_reads(path: &PathBuf, id: &str, mid_id: bool) -> Vec<PathBuf> {
     let patterns = get_patterns(path, id, mid_id);
     
     let opts = MatchOptions {
-        case_sensitive: false,
+        case_sensitive: true,
         ..Default::default()
     };
 
@@ -144,6 +145,7 @@ fn get_patterns(path: &PathBuf, id: &str, mid_id: bool) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
+
     #[test]
     fn glob_raw_reads_test() {
         let input = PathBuf::from("test_files/data.test");
