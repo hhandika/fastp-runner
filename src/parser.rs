@@ -92,7 +92,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
                 3 => seq.get_adapter_dual(&lines[1], &lines[2]),
                 _ => panic!("Unexpected cvs columns. It should be \
                     2 columns for single index and 3 column for \
-                    dual index. The program receives {} columns", lines.len()),
+                    dual index. The app received {} columns", lines.len()),
             };
 
             raw_seqs.push(seq);
@@ -213,6 +213,22 @@ mod test {
                 assert_eq!(true, s.adapter_i7.is_some());
                 assert_eq!(i7, String::from(s.adapter_i7.as_ref().unwrap()))
         });
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_csv_panic_test() {
+        let input = PathBuf::from("test_files/invalid.csv");
+
+        parse_csv(&input, true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_csv_multicols_panic_test() {
+        let input = PathBuf::from("test_files/invalid_multicols.csv");
+
+        parse_csv(&input, true);
     }
 
 }
