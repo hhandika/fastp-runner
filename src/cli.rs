@@ -66,7 +66,7 @@ pub fn get_cli(version: &str) {
         ("test", Some(test_matches)) => {
             if test_matches.is_present("input") {
                 let path = PathBuf::from(test_matches.value_of("input").unwrap());
-                io::get_sequences(&path);
+                io::dry_run(&path);
             }
         }
         _ => unreachable!("UNREACHABLE COMMANDS!"),
