@@ -6,18 +6,17 @@ use std::io::prelude::*;
 use glob::{glob_with, MatchOptions};
 
 pub struct RawSeq {
-    input: PathBuf,
-    // pub id: String, 
-    pub dir: PathBuf, // Use for directory names
+    pub id: String, 
     pub read_1: PathBuf,
     pub read_2: PathBuf,
     pub adapter: String,
+    pub dir: PathBuf,
 }
 
 impl RawSeq {
-    pub fn new(input: &PathBuf) -> Self {
+    pub fn new() -> Self {
         Self {
-            input: PathBuf::from(input),
+            id: String::new(),
             dir: PathBuf::new(),
             read_1: PathBuf::new(),
             read_2: PathBuf::new(),
@@ -25,11 +24,21 @@ impl RawSeq {
         }
     }
 
+    fn get_id(&mut self, id: &str) {
+        self.id = String::from(id);
+    }
+
     fn get_dir(&mut self) {
-        self.dir = self.input
-            .parent()
-            .unwrap()
-            .to_path_buf();
+        let fnames = String::from(
+            self.read_1
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+        );
+
+        let ids = split_strings(&fnames, false);
+        let dir = format!("{}_{}_{}", ids[0], ids[1], ids[2]);
+        self.dir = PathBuf::from(dir);
     }
 
     fn get_reads(&mut self, reads: &[PathBuf]) {
@@ -64,11 +73,13 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
         .filter_map(|ok| ok.ok())
         .skip(1)
         .for_each(|line| {
-            let mut seq = RawSeq::new(input);
-            let lines = split_csv_lines(&line);
-            let reads = glob_raw_reads(&input, &lines[0], mid_id);
+            let mut seq = RawSeq::new();
+            let lines = split_strings(&line, true);
+            let id = String::from(&lines[0]);
+            let reads = glob_raw_reads(&input, &id, mid_id);
 
             seq.get_reads(&reads);
+            seq.get_id(&id);
             seq.get_adapter(&lines[1]);
             seq.get_dir();
             raw_seqs.push(seq);
@@ -79,8 +90,12 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
     raw_seqs
 }
 
-fn split_csv_lines(lines: &str) -> Vec<String> {
-    let seqs = lines.split(',')
+fn split_strings(lines: &str, csv: bool) -> Vec<String> {
+    let mut sep = ',';
+    if !csv {
+        sep = '_';
+    }
+    let seqs = lines.split(sep)
         .map(|e| e.trim().to_string())
         .collect();
     
@@ -147,7 +162,7 @@ mod test {
         
         seq.iter()
             .for_each(|s| {
-                let dir = PathBuf::from(&s.dir);
+                let dir = input.parent().unwrap();
                 assert_eq!(dir.join("test_1_cde_R1.fastq"), s.read_1);
                 assert_eq!(dir.join("test_1_cde_R2.fastq"), s.read_2);
                 assert_eq!("AGTCT", s.adapter);
@@ -162,7 +177,7 @@ mod test {
     
         seq.iter()
         .for_each(|s| {
-            let dir = PathBuf::from(&s.dir);
+            let dir = input.parent().unwrap();
             assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
             assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
             assert_eq!("ATGTCTCTCTATATATACT", s.adapter);
