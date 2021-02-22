@@ -1,34 +1,39 @@
 use std::fs;
 use std::env::consts;
 use std::os::unix;
-use std::io::Result;
+use std::io::{self, Result, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::parser::RawSeq;
+use spinners::{Spinner, Spinners};
 
+use crate::parser::RawSeq;
 
 pub fn clean_reads(reads: &[RawSeq]) {
     let dir = Path::new("clean_reads");
-    fs::create_dir_all(dir)
-        .expect("CAN'T CREATE CLEAN READ DIR");
+    check_dir_exists(&dir);
 
     reads.iter()
         .for_each(|r| {
-            print!("Processing {:?}", r.dir);
             match r.adapter_i7.as_ref() { // Check if i7 contains sequence
-                Some(_) => call_fastp(&dir, &r, true), // if yes -> dual index
+                Some(_) => call_fastp(dir, &r, true), // if yes -> dual index
                 None => call_fastp(&dir, &r, false),
             };
+        });
 
-            println!("Done!");
-        })
+    println!();
 } 
 
 fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
     let seq_dir = dir.join(&input.dir);
     let output_r1 = get_out_fnames(&seq_dir, &input.read_1);
     let output_r2 = get_out_fnames(&seq_dir, &input.read_2);
+        
+    let stdout = io::stdout();
+    let mut buff = io::BufWriter::new(stdout);
+
+    let msg = format!("Processing {:?}\t", input.dir);
+    let spin = Spinner::new(Spinners::Moon, msg.into());
 
     if is_dual_idx {
         let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
@@ -41,6 +46,19 @@ fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
 
     try_creating_symlink(&seq_dir, &input.read_1, &input.read_2);
     reorganize_reports(&seq_dir);
+    
+    spin.stop();
+
+    writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
+}
+
+fn check_dir_exists(dir: &Path) {
+    if dir.exists() {
+        panic!("CLEAN READ DIR EXISTS");
+    } else {
+        fs::create_dir_all(dir)
+        .expect("CAN'T CREATE CLEAN READ DIR");
+    }
 }
 
 fn call_fastp_auto_idx(
@@ -49,7 +67,7 @@ fn call_fastp_auto_idx(
     output_r2: &PathBuf) 
 -> Result<()> {
 
-    let mut out = Command::new("fastp")
+    let out = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
         .arg("-I")
@@ -59,10 +77,10 @@ fn call_fastp_auto_idx(
         .arg(output_r1)
         .arg("-O")
         .arg(output_r2)
-        .spawn()
+        .output()
         .unwrap();
 
-    out.wait().unwrap();
+    assert!(out.status.success());
 
     Ok(())
 }
@@ -73,7 +91,7 @@ fn call_fastp_single_idx(
     output_r2: &PathBuf) 
 -> Result<()> {
 
-    let mut out = Command::new("fastp")
+    let out = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
         .arg("-I")
@@ -84,10 +102,11 @@ fn call_fastp_single_idx(
         .arg(output_r1)
         .arg("-O")
         .arg(output_r2)
-        .spawn()
+        .output()
         .unwrap();
 
-    out.wait().unwrap();
+    // out.wait().unwrap();
+    assert!(out.status.success());
 
     Ok(())
 }
@@ -99,7 +118,7 @@ fn call_fastp_dual_idx(
     adapter_i7: &str
 ) -> Result<()> {
 
-    let mut out = Command::new("fastp")
+    let out = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
         .arg("-I")
@@ -112,10 +131,12 @@ fn call_fastp_dual_idx(
         .arg(output_r1)
         .arg("-O")
         .arg(output_r2)
-        .spawn()
+        // .spawn()
+        .output()
         .unwrap();
 
-    out.wait().unwrap();
+    assert!(out.status.success());
+    // out.wait().unwrap();
 
     Ok(())
 }
