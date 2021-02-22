@@ -16,7 +16,6 @@ fn main() {
     let version = crate_version!();
     
     let time = Instant::now();
-    println!("Starting fastp-runner v{}", &version);
     cli::get_cli(&version);
     let duration = time.elapsed();
 
