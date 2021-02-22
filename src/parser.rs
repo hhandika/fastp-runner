@@ -5,6 +5,8 @@ use std::io::prelude::*;
 
 use glob::{glob_with, MatchOptions};
 
+use crate::itru;
+
 #[derive(Clone)]
 pub struct RawSeq {
     pub id: String, 
@@ -111,27 +113,56 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
         });
 
     println!("Total files: {}", lcounts);
+
     raw_seqs
 }
 
 fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
-    let i5 = adapters[1].to_uppercase();
-    
+    let mut i5 = adapters[1].to_uppercase();
+
     match adapters.len() {
         1 => seq.get_adapter_auto(),
+        2 => {
+            if is_insert_missing(&i5) {
+                panic!("INSERT MISSING!");
+            } else {
+                seq.get_adapter_single(&i5);
+            }  
+        },
 
-        2 => seq.get_adapter_single(&i5),
-        
         3 => {
+            if is_insert_missing(&i5) {
+                panic!("INSERT MISSING!");
+            } else {
             let i7 = adapters[2].to_uppercase();
+            seq.get_adapter_dual(&i5, &i7);
+            }
+        },
+
+        4 => {
+            let i7 = adapters[2].to_uppercase();
+            if is_insert_missing(&adapters[1]) {
+                i5 = itru::insert_tag(&adapters[1], &adapters[3]);  
+                seq.get_adapter_dual(&i5, &i7);
+            } else {
+                panic!("TOO MANY COLUMNS!");
+            }
+        }
+
+        5 => {
+            i5 = itru::insert_tag(&adapters[1], &adapters[3]);
+            let i7 = itru::insert_tag(&adapters[2], &adapters[4]);
             seq.get_adapter_dual(&i5, &i7);
         },
 
         _ => panic!("Unexpected cvs columns. It should be \
             2 columns for single index and 3 column for \
             dual index. The app received {} columns", adapters.len()),
-    };
+    }
+}
 
+fn is_insert_missing(adapter: &str) -> bool {
+    adapter.contains('*')
 }
 
 fn split_strings(lines: &str, csv: bool) -> Vec<String> {
@@ -261,6 +292,47 @@ mod test {
         let input = PathBuf::from("test_files/invalid_multicols.csv");
 
         parse_csv(&input, true);
+    }
+
+    #[test]
+    fn get_adapter_test() {
+        let mut seq = RawSeq::new();
+        let id = String::from("MNCT");
+        let i5 = String::from("ATGTGTGTGATatc");
+        let i7 = String::from("ATTTGTGTTTCCC");
+
+        let adapters: Vec<String> = vec![id, i5, i7];
+
+        get_adapters(&mut seq, &adapters);
+
+        assert_eq!("ATGTGTGTGATATC", seq.adapter_i5);
+
+    }
+
+    #[test]
+    fn get_adapter_insert_test() {
+        let mut seq = RawSeq::new();
+        let id = String::from("MNCT");
+        let i5 = String::from("ATGTGTGTGA*Tatc");
+        let i7 = String::from("ATTTGTGTTT*CCC");
+
+        let tag_i5 = String::from("ATT");
+        let tag_i7 = String::from("GCC");
+
+        let adapters: Vec<String> = vec![id, i5, i7, tag_i5, tag_i7];
+
+        get_adapters(&mut seq, &adapters);
+
+        assert_eq!("ATGTGTGTGATAATATC", seq.adapter_i5);
+        assert_eq!("ATTTGTGTTTCGGCCC", String::from(seq.adapter_i7.as_ref().unwrap()));
+    }
+
+    #[test]
+
+    fn is_insert_test() {
+        let seq = "ATATTAT*T";
+
+        assert_eq!(true, is_insert_missing(seq));
     }
 
 }

@@ -4,6 +4,7 @@
 
 mod cli;
 mod io;
+mod itru;
 mod parser;
 mod wrapper;
 
