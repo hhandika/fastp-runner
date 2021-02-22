@@ -8,7 +8,7 @@ pub fn insert_tag(seq: &str, insert: &str) -> String {
 
 fn translate_dna(insert: &str) -> String {
     let libs = get_dna_libs();
-    let dna = String::from(insert.to_uppercase());
+    let dna = insert.to_uppercase();
 
     let mut translate = String::new();
 

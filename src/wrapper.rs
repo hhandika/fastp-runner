@@ -16,13 +16,22 @@ pub fn clean_reads(reads: &[RawSeq]) {
     reads.iter()
         .for_each(|r| {
             match r.adapter_i7.as_ref() { // Check if i7 contains sequence
-                Some(_) => call_fastp(dir, &r, true), // if yes -> dual index
+                Some(_) => call_fastp(&dir, &r, true), // if yes -> dual index
                 None => call_fastp(&dir, &r, false),
             };
         });
 
     println!();
 } 
+
+fn check_dir_exists(dir: &Path) {
+    if dir.exists() {
+        panic!("CLEAN READ DIR EXISTS");
+    } else { // if not create one
+        fs::create_dir_all(dir)
+        .expect("CAN'T CREATE CLEAN READ DIR");
+    }
+}
 
 fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
     let seq_dir = dir.join(&input.dir);
@@ -33,7 +42,7 @@ fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
     let mut buff = io::BufWriter::new(stdout);
 
     let msg = format!("Processing {:?}\t", input.dir);
-    let spin = Spinner::new(Spinners::Moon, msg.into());
+    let spin = Spinner::new(Spinners::Moon, msg);
 
     if is_dual_idx {
         let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
@@ -50,15 +59,6 @@ fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
     spin.stop();
 
     writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
-}
-
-fn check_dir_exists(dir: &Path) {
-    if dir.exists() {
-        panic!("CLEAN READ DIR EXISTS");
-    } else {
-        fs::create_dir_all(dir)
-        .expect("CAN'T CREATE CLEAN READ DIR");
-    }
 }
 
 fn call_fastp_auto_idx(

@@ -70,14 +70,14 @@ impl RawSeq {
         let adapter_i7 = String::from(adapter_i7.trim());
 
         if !adapter_i5.is_empty() && !adapter_i7.is_empty() {
-            self.adapter_i5 = String::from(adapter_i5);
+            self.adapter_i5 = adapter_i5;
             self.adapter_i7 = Some(adapter_i7);
         } else if !adapter_i5.is_empty() && adapter_i7.is_empty() {
-            self.adapter_i5 = String::from(adapter_i5);
+            self.adapter_i5 = adapter_i5;
         } else if adapter_i5.is_empty() && adapter_i7.is_empty(){
             self.get_adapter_auto();
         } else {
-            self.adapter_i5 = String::from(adapter_i5);
+            self.adapter_i5 = adapter_i5;
         }
     }
 
