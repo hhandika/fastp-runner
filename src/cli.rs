@@ -34,23 +34,14 @@ pub fn get_cli(version: &str) {
                         .long("left")
                         .help("A unique ID is at the start of filename")
                         .takes_value(false)
-                        .value_name("INPUT")
-                ) 
-        )
-
-        .subcommand(
-            App::new("dry")
-                .about("Uses for adapter cleaning")
-                .arg(
-                    Arg::with_name("input")
-                        .short("i")
-                        .long("input")
-                        .help("Inputs a config file")
-                        // .conflicts_with_all(&[ "check"])
-                        .takes_value(true)
-                        .value_name("INPUT")
                 )
-             
+                
+                .arg(
+                    Arg::with_name("dry-run")
+                        .long("dry")
+                        .help("Check if the program detect the correct files")
+                        .takes_value(false)
+                )
         )
         
         .get_matches();
@@ -65,7 +56,13 @@ pub fn get_cli(version: &str) {
                 if clean_matches.is_present("left_id") {
                     is_mid_id = false;
                 }
-                io::process_input(&path, is_mid_id);
+
+                if clean_matches.is_present("dry-run") {
+                    io::dry_run(&path);
+                } else {
+                    io::process_input(&path, is_mid_id, version);
+                }
+
             }  
 
         }
@@ -74,12 +71,6 @@ pub fn get_cli(version: &str) {
             wrapper::check_fastp();
         }
 
-        ("dry", Some(test_matches)) => {
-            if test_matches.is_present("input") {
-                let path = PathBuf::from(test_matches.value_of("input").unwrap());
-                io::dry_run(&path);
-            }
-        }
         _ => unreachable!("UNREACHABLE COMMANDS!"),
     };
 }
