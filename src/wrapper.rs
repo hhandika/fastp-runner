@@ -3,7 +3,7 @@ use std::env::consts;
 use std::os::unix;
 use std::io::{self, Result, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
 
 use spinners::{Spinner, Spinners};
 
@@ -80,7 +80,7 @@ fn call_fastp_auto_idx(
         .output()
         .unwrap();
 
-    assert!(out.status.success());
+    check_fastp_status(&out);
 
     Ok(())
 }
@@ -91,7 +91,7 @@ fn call_fastp_single_idx(
     output_r2: &PathBuf) 
 -> Result<()> {
 
-    let out = Command::new("fastp")
+    let out: Output = Command::new("fastp")
         .arg("-i")
         .arg(input.read_1.clone())
         .arg("-I")
@@ -105,8 +105,7 @@ fn call_fastp_single_idx(
         .output()
         .unwrap();
 
-    // out.wait().unwrap();
-    assert!(out.status.success());
+    check_fastp_status(&out);
 
     Ok(())
 }
@@ -131,14 +130,31 @@ fn call_fastp_dual_idx(
         .arg(output_r1)
         .arg("-O")
         .arg(output_r2)
-        // .spawn()
         .output()
         .unwrap();
 
-    assert!(out.status.success());
-    // out.wait().unwrap();
+    check_fastp_status(&out);
 
     Ok(())
+}
+
+fn check_fastp_status(out: &Output) {
+    if !out.status.success() {
+        fastp_is_failed(out);
+    }
+
+    let fastp_html = Path::new("fastp.html");
+    let fastp_json = Path::new("fastp.json");
+
+    if !fastp_html.is_file() || !fastp_json.is_file() {
+        fastp_is_failed(out);
+    }
+}
+
+fn fastp_is_failed(out: &Output) {
+    io::stdout().write_all(&out.stdout).unwrap();
+    io::stdout().write_all(&out.stderr).unwrap();
+    panic!("FASTP FAILED TO RUN");
 }
 
 fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
@@ -171,8 +187,8 @@ fn create_symlink(dir: &Path, read_1: &Path, read_2: &Path) -> Result<()> {
 }
 
 fn reorganize_reports(dir: &Path) {
-    let fastp_html = PathBuf::from("fastp.html");
-    let fastp_json = PathBuf::from("fastp.json");
+    let fastp_html = Path::new("fastp.html");
+    let fastp_json = Path::new("fastp.json");
 
     let parent = dir.join("fastp_reports");
 
