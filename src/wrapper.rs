@@ -1,10 +1,12 @@
 use std::fs;
 use std::env::consts;
-use std::os::unix;
 use std::str;
 use std::io::{self, Result, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+
+#[cfg(target_family="unix")]
+use std::os::unix;
 
 use spinners::{Spinner, Spinners};
 
@@ -192,6 +194,7 @@ fn try_creating_symlink(dir: &Path, read_1: &Path, read_2: &Path) {
     };
 }
 
+#[cfg(target_family="unix")]
 fn create_symlink(dir: &Path, read_1: &Path, read_2: &Path) -> Result<()> {
     let symdir = dir.join("raw_reads");
     fs::create_dir_all(&symdir).unwrap();
