@@ -36,6 +36,15 @@ impl RawSeq {
     }
 
     fn get_dir(&mut self) {
+        if self.read_1.to_string_lossy().is_empty() {
+            panic!("MISSING READ FILES FOR {}. \
+                Read 1: {:?} \
+                Read 2: {:?}", 
+                self.id, 
+                self.read_1,
+                self.read_2);
+        }
+        
         let fnames = String::from(
             self.read_1
                 .file_name()
@@ -92,7 +101,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
     let buff = BufReader::new(file);
 
     let mut raw_seqs = Vec::new();
-    let mut lcounts = 0;
+    let mut lcounts: usize = 0;
 
     buff.lines()
         .filter_map(|ok| ok.ok())
@@ -102,7 +111,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
             let lines = split_strings(&line, true);
             let id = String::from(&lines[0]);
             let reads = glob_raw_reads(&input, &id, mid_id);
-
+            check_reads(&reads, &id, &lcounts);
             seq.get_reads(&reads);
             seq.get_id(&id);
             seq.get_dir();
@@ -115,6 +124,12 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
     println!("Total files: {}", lcounts);
 
     raw_seqs
+}
+
+fn check_reads(reads: &[PathBuf], id: &str, lnum: &usize) {
+    if reads.is_empty() {
+        panic!("FILE {} AT LINE {} IS MISSING", id, lnum + 1)
+    }
 }
 
 fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
