@@ -172,7 +172,7 @@ fn write_stdout(out: &Output) {
     let mut buff = BufWriter::new(&fname);
 
     // Rust recognize fastp console output as stderr
-    // instead of stdout.
+    // Hence, we write stderr instead of stdout.
     buff.write_all(&out.stderr).unwrap();
 }
 
