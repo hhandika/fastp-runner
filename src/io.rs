@@ -35,9 +35,8 @@ pub fn dry_run(input: &PathBuf) {
 
 pub fn process_input(input: &PathBuf, is_mid_id: bool, version: &str) {
     println!("Starting fastp-runner v{}...", &version);
-
-    let reads: Vec<RawSeq> = parser::parse_csv(input, is_mid_id);
     display_fastp_status();
+    let reads: Vec<RawSeq> = parser::parse_csv(input, is_mid_id);
     wrapper::clean_reads(&reads);
 }
 
