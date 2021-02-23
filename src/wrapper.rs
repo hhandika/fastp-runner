@@ -165,8 +165,8 @@ fn fastp_is_failed(out: &Output) {
     panic!("FASTP FAILED TO RUN");
 }
 
-// We remove the clutter of fastp out from 
-// the console. Instead, we save it as a log file.
+// We remove the clutter of fastp stdout in the console. 
+// Instead, we save it as a log file.
 fn write_stdout(out: &Output) {
     let fname = fs::File::create("fastp.log").unwrap();
     let mut buff = BufWriter::new(&fname);
