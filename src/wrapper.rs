@@ -1,6 +1,7 @@
 use std::fs;
 use std::env::consts;
 use std::os::unix;
+use std::str;
 use std::io::{self, Result, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -213,21 +214,20 @@ fn reorganize_reports(dir: &Path) {
     let json_out = parent.join(&fastp_json);
     let log_out = parent.join(&fastp_out);
     
-    // Move json and html reports
+    // Move json, html, and log reports
     fs::rename(&fastp_html, &html_out).unwrap();
     fs::rename(&fastp_json, &json_out).unwrap();
     fs::rename(&fastp_out, &log_out).unwrap();
 }
 
 pub fn check_fastp() {
-    let out = Command::new("iqtree")
+    let out = Command::new("fastp")
         .arg("--version")
         .output()
         .expect("CANNOT FIND Fastp");
     
     if out.status.success() {
-        println!("[OK]\tFastp");
-    } else {
-        println!("ERROR")
-    }
+        println!("[OK]\t{}\n", str::from_utf8(&out.stderr).unwrap().trim());
+    } 
+    
 }
