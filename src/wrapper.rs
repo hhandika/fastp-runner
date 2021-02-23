@@ -1,5 +1,4 @@
 use std::fs;
-use std::env::consts;
 use std::str;
 use std::io::{self, Result, BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -186,12 +185,11 @@ fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
 }
 
 fn try_creating_symlink(dir: &Path, read_1: &Path, read_2: &Path) {
-    let os = consts::OS;
-    match os {
-        "linux" | "macos" => create_symlink(dir, read_1, read_2).unwrap(),
-        "windows" => println!("The program can't create symlink in Windows"),
-        _ => ()
-    };
+    if cfg!(target_family="unix") {
+        create_symlink(dir, read_1, read_2).unwrap(); 
+    } else {
+        println!("Skip creating symlink. Operating system is not supported.");
+    }
 }
 
 #[cfg(target_family="unix")]

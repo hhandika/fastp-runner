@@ -1,6 +1,6 @@
 # fastp-runner
 [![Build Status](https://www.travis-ci.com/hhandika/fastp-runner.svg?branch=main)](https://www.travis-ci.com/hhandika/fastp-runner)
-![fastp-runner](https://github.com/hhandika/fastp-runner/workflows/fastp-runner/badge.svg)
+![fastp-runner](https://github.com/hhandika/fastp-runner/workflows/Tests/badge.svg)
 
 A tool for batch processing NGS data cleaning and adapter trimming using Fastp. The input is a simple csv file. The program allow auto detection.  
 
