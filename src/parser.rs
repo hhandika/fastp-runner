@@ -67,7 +67,7 @@ impl RawSeq {
         let missing_r1 = self.read_1.to_string_lossy().is_empty();
         let missing_r2 = self.read_2.to_string_lossy().is_empty();
         if  missing_r1 || missing_r2 {
-            panic!("MISSING READ FILES FOR {}. \
+            panic!("CANNOT FIND BOTH READS FOR {}. \
                 Read 1: {:?} \
                 Read 2: {:?}", 
                 self.id, 
