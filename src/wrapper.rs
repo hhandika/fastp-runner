@@ -1,7 +1,7 @@
 use std::fs;
 use std::env::consts;
 use std::os::unix;
-use std::io::{self, Result, Write};
+use std::io::{self, Result, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -81,6 +81,7 @@ fn call_fastp_auto_idx(
         .unwrap();
 
     check_fastp_status(&out);
+    write_std_out(&out);
 
     Ok(())
 }
@@ -106,6 +107,7 @@ fn call_fastp_single_idx(
         .unwrap();
 
     check_fastp_status(&out);
+    write_std_out(&out);
 
     Ok(())
 }
@@ -134,10 +136,15 @@ fn call_fastp_dual_idx(
         .unwrap();
 
     check_fastp_status(&out);
+    write_std_out(&out);
 
     Ok(())
 }
 
+// Less likely this will be called 
+// because potential input errors that cause fastp
+// to failed is mitigated before passing the input
+// to it.
 fn check_fastp_status(out: &Output) {
     if !out.status.success() {
         fastp_is_failed(out);
@@ -155,6 +162,13 @@ fn fastp_is_failed(out: &Output) {
     io::stdout().write_all(&out.stdout).unwrap();
     io::stdout().write_all(&out.stderr).unwrap();
     panic!("FASTP FAILED TO RUN");
+}
+
+fn write_std_out(out: &Output) {
+    let fname = fs::File::create("fastp.log").unwrap();
+    let mut buff = BufWriter::new(&fname);
+
+    buff.write_all(&out.stderr).unwrap();
 }
 
 fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
@@ -189,6 +203,7 @@ fn create_symlink(dir: &Path, read_1: &Path, read_2: &Path) -> Result<()> {
 fn reorganize_reports(dir: &Path) {
     let fastp_html = Path::new("fastp.html");
     let fastp_json = Path::new("fastp.json");
+    let fastp_out = Path::new("fastp.log");
 
     let parent = dir.join("fastp_reports");
 
@@ -196,10 +211,12 @@ fn reorganize_reports(dir: &Path) {
 
     let html_out = parent.join(&fastp_html);
     let json_out = parent.join(&fastp_json);
+    let log_out = parent.join(&fastp_out);
     
     // Move json and html reports
     fs::rename(&fastp_html, &html_out).unwrap();
     fs::rename(&fastp_json, &json_out).unwrap();
+    fs::rename(&fastp_out, &log_out).unwrap();
 }
 
 pub fn check_fastp() {
