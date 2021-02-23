@@ -118,11 +118,10 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
 }
 
 fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
-    let mut i5 = adapters[1].to_uppercase();
-
     match adapters.len() {
         1 => seq.get_adapter_auto(),
         2 => {
+            let i5 = adapters[1].to_uppercase();
             if is_insert_missing(&i5) {
                 panic!("INSERT MISSING!");
             } else {
@@ -131,6 +130,7 @@ fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
         },
 
         3 => {
+            let i5 = adapters[1].to_uppercase();
             if is_insert_missing(&i5) {
                 panic!("INSERT MISSING!");
             } else {
@@ -142,7 +142,7 @@ fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
         4 => {
             let i7 = adapters[2].to_uppercase();
             if is_insert_missing(&adapters[1]) {
-                i5 = itru::insert_tag(&adapters[1], &adapters[3]);  
+                let i5 = itru::insert_tag(&adapters[1], &adapters[3]);  
                 seq.get_adapter_dual(&i5, &i7);
             } else {
                 panic!("TOO MANY COLUMNS!");
@@ -150,7 +150,7 @@ fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
         }
 
         5 => {
-            i5 = itru::insert_tag(&adapters[1], &adapters[3]);
+            let i5 = itru::insert_tag(&adapters[1], &adapters[3]);
             let i7 = itru::insert_tag(&adapters[2], &adapters[4]);
             seq.get_adapter_dual(&i5, &i7);
         },
