@@ -39,7 +39,7 @@ impl RawSeq {
         let fnames = String::from(
             self.read_1
                 .file_name()
-                .unwrap()
+                .expect("MISSING FILES")
                 .to_string_lossy()
         );
 
