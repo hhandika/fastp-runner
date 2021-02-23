@@ -82,7 +82,7 @@ fn call_fastp_auto_idx(
         .unwrap();
 
     check_fastp_status(&out);
-    write_std_out(&out);
+    write_stdout(&out);
 
     Ok(())
 }
@@ -108,7 +108,7 @@ fn call_fastp_single_idx(
         .unwrap();
 
     check_fastp_status(&out);
-    write_std_out(&out);
+    write_stdout(&out);
 
     Ok(())
 }
@@ -137,7 +137,7 @@ fn call_fastp_dual_idx(
         .unwrap();
 
     check_fastp_status(&out);
-    write_std_out(&out);
+    write_stdout(&out);
 
     Ok(())
 }
@@ -165,10 +165,14 @@ fn fastp_is_failed(out: &Output) {
     panic!("FASTP FAILED TO RUN");
 }
 
-fn write_std_out(out: &Output) {
+// We remove the clutter of fastp out from 
+// the console. Instead, we save it as a log file.
+fn write_stdout(out: &Output) {
     let fname = fs::File::create("fastp.log").unwrap();
     let mut buff = BufWriter::new(&fname);
 
+    // Rust recognize fastp console output as stderr
+    // instead of stdout.
     buff.write_all(&out.stderr).unwrap();
 }
 
