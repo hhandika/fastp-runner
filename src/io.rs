@@ -4,6 +4,7 @@ use crate::parser::{self, RawSeq};
 use crate::wrapper;
 
 pub fn dry_run(input: &PathBuf) {
+    display_fastp_status();
     let reads: Vec<RawSeq> = parser::parse_csv(input, true);
 
     println!();
@@ -36,5 +37,11 @@ pub fn process_input(input: &PathBuf, is_mid_id: bool, version: &str) {
     println!("Starting fastp-runner v{}...", &version);
 
     let reads: Vec<RawSeq> = parser::parse_csv(input, is_mid_id);
+    display_fastp_status();
     wrapper::clean_reads(&reads);
+}
+
+fn display_fastp_status() {
+    println!("Checking fastp...");
+    wrapper::check_fastp();
 }
