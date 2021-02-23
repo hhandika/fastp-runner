@@ -36,15 +36,6 @@ impl RawSeq {
     }
 
     fn get_dir(&mut self) {
-        if self.read_1.to_string_lossy().is_empty() {
-            panic!("MISSING READ FILES FOR {}. \
-                Read 1: {:?} \
-                Read 2: {:?}", 
-                self.id, 
-                self.read_1,
-                self.read_2);
-        }
-        
         let fnames = String::from(
             self.read_1
                 .file_name()
@@ -68,6 +59,21 @@ impl RawSeq {
                     _ => (),
                 }
             });
+
+        self.check_missing_reads();
+    }
+
+    fn check_missing_reads(&self) {
+        let missing_r1 = self.read_1.to_string_lossy().is_empty();
+        let missing_r2 = self.read_2.to_string_lossy().is_empty();
+        if  missing_r1 || missing_r2 {
+            panic!("MISSING READ FILES FOR {}. \
+                Read 1: {:?} \
+                Read 2: {:?}", 
+                self.id, 
+                self.read_1,
+                self.read_2);
+        }
     }
 
     fn get_adapter_single(&mut self, adapter: &str) {
@@ -112,8 +118,8 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
             let id = String::from(&lines[0]);
             let reads = glob_raw_reads(&input, &id, mid_id);
             check_reads(&reads, &id, &lcounts);
-            seq.get_reads(&reads);
             seq.get_id(&id);
+            seq.get_reads(&reads);
             seq.get_dir();
             get_adapters(&mut seq, &lines);
 
