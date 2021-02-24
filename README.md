@@ -45,7 +45,7 @@ For cvs file with a single adapter:
 |ABC12345   | ATGTCTCTCTATATATACT | 
 
 
-For csv file with adapter:
+For csv file with dual adapters:
 
 | id      |   i5                | i7                  |
 | ------- | ------------------- | ------------------  | 
@@ -56,7 +56,7 @@ If the adapter and tag were splitted:
 
 The program will automatically insert the tag. It follows the algorithms used by [Illumiprocessor](https://illumiprocessor.readthedocs.io/en/latest/).
 
-| id      |   i5                    | i7                    |   i5 tag   | i7 tag   |
+| id      |   i5                    | i7                    |   i5 index   | i7 index   |
 | -------   | -------------------   | ------------------    | -----------| ---------|
 |XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
 |ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
