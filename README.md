@@ -39,7 +39,7 @@ It will display the program version if the program can find fastp, such as below
 fastp-runner accept a csv file. The header name is not important. It only needs to have a header file. Otherwise, the program will skip the first line. The order however is important. 
 
 For cvs file with a single adapter:
-| id        |   i5                | 
+| id        |   i7                | 
 | -------   | ------------------- |  
 |XYZ12345   | ATGTCTCTCTATATATACT | 
 |ABC12345   | ATGTCTCTCTATATATACT | 
