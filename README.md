@@ -69,4 +69,4 @@ If you would like fastp to detect the adapter. You only need to pass the unique 
 
 
 # State of the Code
-Work in progress. The program is stable. Future update will improve console output and allow for renaming output. 
+Work in progress. The program is stable. Future update will improve console output and allow for renaming file output. 
