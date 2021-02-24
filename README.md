@@ -37,21 +37,21 @@ It will display the program version if the program can find fastp, such as below
 
 fastp-runner accept a cvs file. The header name is not important. It only needs to have a header file. Otherwise, the program will skip the first line. The order however is important. 
 
-### For cvs file with a single adapter:
+For cvs file with a single adapter:
 | id        |   i5                | 
 | -------   | ------------------- |  
 |XYZ12345   | ATGTCTCTCTATATATACT | 
 |ABC12345   | ATGTCTCTCTATATATACT | 
 
 
-### For csv file with adapter:
+For csv file with adapter:
 
 | id      |   i5                | i7                  |
 | ------- | ------------------- | ------------------  | 
 |XYZ12345 | ATGTCTCTCTATATATACT | ATGTCTCTCTATATATGCT |
 |ABC12345 | ATGTCTCTCTATATATACT | ATGTCTCTCTATATATGCT |
 
-### If the adapter and tag were splitted:
+If the adapter and tag were splitted:
 
 The program will automatically insert the tag. It follows the algorithms used by [Illumiprocessor](https://illumiprocessor.readthedocs.io/en/latest/).
 
@@ -60,7 +60,7 @@ The program will automatically insert the tag. It follows the algorithms used by
 |XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
 |ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
 
-### If you would like fastp to detect the adapter. You only need to pass the unique id of the sequence as an input. 
+If you would like fastp to detect the adapter. You only need to pass the unique id of the sequence as an input. 
 
 | id      |
 |---------|
