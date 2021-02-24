@@ -53,7 +53,7 @@ fastp-runner accept a cvs file. The header name is not important. It only needs 
 
 ### If the adapter and tag were splitted:
 
-The program will automatically insert the tag. It follows the algorithms used by [Illumina-Processor](https://illumiprocessor.readthedocs.io/en/latest/)
+The program will automatically insert the tag. It follows the algorithms used by [Illumiprocessor](https://illumiprocessor.readthedocs.io/en/latest/)
 
 | id      |   i5                    | i7                    |   i5 tag   | i7 tag   |
 | -------   | -------------------   | ------------------    | -----------| ---------|
