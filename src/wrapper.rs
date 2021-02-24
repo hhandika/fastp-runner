@@ -186,9 +186,14 @@ fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
 
 fn try_creating_symlink(dir: &Path, read_1: &Path, read_2: &Path) {
     if cfg!(target_family="unix") {
-        create_symlink(dir, read_1, read_2).unwrap(); 
+        #[cfg(target_family="unix")]
+        create_symlink(dir, read_1, read_2).unwrap();
     } else {
-        println!("Skip creating symlink. Operating system is not supported.");
+        println!("Skip creating symlink in dir {} for {} and {}. \
+            Operating system is not supported.", 
+            &dir.to_string_lossy(), 
+            &read_1.to_string_lossy(), 
+            &read_2.to_string_lossy());
     }
 }
 
