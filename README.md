@@ -4,7 +4,12 @@
 
 A tool for batch processing NGS data cleaning and adapter trimming using Fastp. The input is a simple csv file. The program allow auto detection.  
 
-Work in progress...
+# Installation
+
+I will update this soon. In the mean time, check [simple-qc](https://github.com/hhandika/simple-qc) installation instruction. The installation process is similar to it.
+
+
+# Usage
 
 ```
 ftr clean -i [csv-input]
@@ -27,3 +32,41 @@ It will display the program version if the program can find fastp, such as below
 ```
 [OK]    fastp 0.20.0
 ```
+
+# Input File
+
+fastp-runner accept a cvs file. The header name is not important. It only needs to have a header file. The order however is important. 
+
+### For cvs file with a single adapter:
+| id        |   i5                | 
+| -------   | ------------------- |  
+|XYZ12345   | ATGTCTCTCTATATATACT | 
+|ABC12345   | ATGTCTCTCTATATATACT | 
+
+
+### For csv file with adapter:
+
+| id      |   i5                | i7                  |
+| ------- | ------------------- | ------------------  | 
+|XYZ12345 | ATGTCTCTCTATATATACT | ATGTCTCTCTATATATGCT |
+|ABC12345 | ATGTCTCTCTATATATACT | ATGTCTCTCTATATATGCT |
+
+### If the adapter and tag were splitted:
+
+The program will automatically insert the tag. It follows the algorithms used by [Illumina-Processor](https://illumiprocessor.readthedocs.io/en/latest/)
+
+| id      |   i5                    | i7                    |   i5 tag   | i7 tag   |
+| -------   | -------------------   | ------------------    | -----------| ---------|
+|XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
+|ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
+
+### If you would fastp to detect the adapter. You only need to pass the unique id of the sequence.
+
+| id      |
+|---------|
+|ABCD12345|
+|XYZ12456 |
+
+
+# State of the Code
+Work in progress. The program is stable. Future update will improve console output. 
