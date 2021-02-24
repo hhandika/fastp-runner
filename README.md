@@ -35,7 +35,7 @@ It will display the program version if the program can find fastp, such as below
 
 # Input File
 
-fastp-runner accept a cvs file. The header name is not important. It only needs to have a header file. The order however is important. 
+fastp-runner accept a cvs file. The header name is not important. It only needs to have a header file. Otherwise, the program will skip the first line. The order however is important. 
 
 ### For cvs file with a single adapter:
 | id        |   i5                | 
@@ -53,14 +53,14 @@ fastp-runner accept a cvs file. The header name is not important. It only needs 
 
 ### If the adapter and tag were splitted:
 
-The program will automatically insert the tag. It follows the algorithms used by [Illumiprocessor](https://illumiprocessor.readthedocs.io/en/latest/)
+The program will automatically insert the tag. It follows the algorithms used by [Illumiprocessor](https://illumiprocessor.readthedocs.io/en/latest/).
 
 | id      |   i5                    | i7                    |   i5 tag   | i7 tag   |
 | -------   | -------------------   | ------------------    | -----------| ---------|
 |XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
 |ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
 
-### If you would fastp to detect the adapter. You only need to pass the unique id of the sequence.
+### If you would like fastp to detect the adapter. You only need to pass the unique id of the sequence as an input. 
 
 | id      |
 |---------|
@@ -69,4 +69,4 @@ The program will automatically insert the tag. It follows the algorithms used by
 
 
 # State of the Code
-Work in progress. The program is stable. Future update will improve console output. 
+Work in progress. The program is stable. Future update will improve console output and allow for renaming output. 
