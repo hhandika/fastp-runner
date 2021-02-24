@@ -8,6 +8,7 @@ A tool for batch processing NGS data cleaning and adapter trimming using Fastp. 
 
 I will update this soon. In the mean time, check [simple-qc](https://github.com/hhandika/simple-qc) installation instruction. The installation process is similar to it.
 
+Then install fastp. Follow the instruction to install fastp [here](https://github.com/OpenGene/fastp).
 
 # Usage
 
