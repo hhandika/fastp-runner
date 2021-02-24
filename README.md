@@ -38,6 +38,13 @@ It will display the program version if the program can find fastp, such as below
 
 fastp-runner accept a csv file. The header name is not important. It only needs to have a header file. Otherwise, the program will skip the first line. The order however is important. 
 
+For adapter auto detection:
+
+| id      |
+|---------|
+|ABCD12345|
+|XYZ12456 |
+
 For cvs file with a single adapter:
 | id        |   i7                | 
 | -------   | ------------------- |  
@@ -60,13 +67,6 @@ The program will automatically insert the tag. It follows the algorithms used by
 | -------   | -------------------   | ------------------    | -----------| ---------|
 |XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
 |ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
-
-If you would like fastp to detect the adapter. You only need to pass the unique id of the sequence as an input. 
-
-| id      |
-|---------|
-|ABCD12345|
-|XYZ12456 |
 
 
 # State of the Code
