@@ -48,7 +48,7 @@ pub fn get_cli(version: &str) {
     match args.subcommand() {
         ("clean", Some(clean_matches)) => run_fastp_clean(clean_matches, version),
         ("check", Some(_)) => wrapper::check_fastp(),
-        _ => unreachable!("UNREACHABLE COMMANDS!"),
+        _ => (),
     };
 }
 
