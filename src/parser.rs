@@ -16,6 +16,7 @@ pub struct RawSeq {
     pub adapter_i7: Option<String>,
     pub dir: PathBuf,
     pub auto_idx: bool,
+    pub outname: Option<String>
 }
 
 impl RawSeq {
@@ -28,6 +29,7 @@ impl RawSeq {
             adapter_i5: String::new(),
             adapter_i7: None,
             auto_idx: false,
+            outname: None,
         }
     }
 
