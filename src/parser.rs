@@ -102,7 +102,7 @@ impl RawSeq {
 
 }
 
-pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
+pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
     let file = File::open(input).unwrap();
     let buff = BufReader::new(file);
 
@@ -116,7 +116,7 @@ pub fn parse_csv(input: &PathBuf, mid_id: bool) -> Vec<RawSeq> {
             let mut seq = RawSeq::new();
             let lines = split_strings(&line, true);
             let id = String::from(&lines[0]);
-            let reads = glob_raw_reads(&input, &id, mid_id);
+            let reads = glob_raw_reads(&input, &id, is_id);
             check_reads(&reads, &id, &lcounts);
             seq.get_id(&id);
             seq.get_reads(&reads);
@@ -198,8 +198,8 @@ fn split_strings(lines: &str, csv: bool) -> Vec<String> {
     seqs
 }
 
-fn glob_raw_reads(path: &PathBuf, id: &str, mid_id: bool) -> Vec<PathBuf> {
-    let patterns = get_patterns(path, id, mid_id);
+fn glob_raw_reads(path: &PathBuf, id: &str, is_id: bool) -> Vec<PathBuf> {
+    let patterns = get_patterns(path, id, is_id);
     
     let opts = MatchOptions {
         case_sensitive: true,
@@ -212,11 +212,11 @@ fn glob_raw_reads(path: &PathBuf, id: &str, mid_id: bool) -> Vec<PathBuf> {
         .collect()
 }
 
-fn get_patterns(path: &PathBuf, id: &str, mid_id: bool) -> String {
+fn get_patterns(path: &PathBuf, id: &str, is_id: bool) -> String {
     let parent = path.parent().unwrap();
     let mut pat_id = format!("*?{}?*", id);
 
-    if !mid_id {
+    if !is_id {
         pat_id = format!("{}?*", id);
     }
 
