@@ -14,7 +14,6 @@ use clap::crate_version;
 
 fn main() {
     let version = crate_version!();
-    
     let time = Instant::now();
     cli::get_cli(&version);
     let duration = time.elapsed();
