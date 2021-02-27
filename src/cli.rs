@@ -93,24 +93,4 @@ mod test {
             .success()
             .stdout(predicate::str::contains(version));
     }
-
-    #[test]
-    fn cli_clean_test() {
-        let mut cmd = Command::cargo_bin("ftr").unwrap();
-        cmd.arg("clean").arg("--help");
-        cmd.assert().success();
-    }
-
-    #[test]
-    fn cli_clean_invalid_file_test() {
-        let mut cmd = Command::cargo_bin("ftr").unwrap();
-
-        cmd.arg("clean")
-            .arg("-i")
-            .arg("invalid.txt");
-        
-        cmd.assert()
-            .failure()
-            .stderr(predicate::str::contains("No such file or directory"));
-    }
 }
