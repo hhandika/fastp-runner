@@ -56,16 +56,16 @@ pub fn get_cli(version: &str) {
 fn run_fastp_clean(clean_matches: &ArgMatches, version: &str) {
     if clean_matches.is_present("input") {
         let path = PathBuf::from(clean_matches.value_of("input").unwrap());
-        let mut is_mid_id = true;
+        let mut is_id = true;
 
         if clean_matches.is_present("id") {
-            is_mid_id = false;
+            is_id = false;
         }
 
         if clean_matches.is_present("dry-run") {
             io::dry_run(&path);
         } else {
-            io::process_input(&path, is_mid_id, version);
+            io::process_input(&path, is_id, version);
         }
 
     } 
