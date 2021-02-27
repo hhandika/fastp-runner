@@ -242,9 +242,9 @@ mod test {
     fn glob_id_at_start_test() {
         let input = PathBuf::from("test_files/data.test");
         let pattern = "test_1";
-        let mid_id = false;
+        let is_id = false;
 
-        let files = glob_raw_reads(&input, &pattern, mid_id);
+        let files = glob_raw_reads(&input, &pattern, is_id);
 
         assert_eq!(2, files.len());
     }
