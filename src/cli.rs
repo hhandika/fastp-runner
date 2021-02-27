@@ -13,13 +13,12 @@ pub fn get_cli(version: &str) {
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(
             App::new("check")
-                .help("Check the status of fastp")
-                .about("Check if fastp is installed")
+                .about("Checks if fastp is installed")
             )
 
         .subcommand(
             App::new("clean")
-                .about("Uses for adapter cleaning")
+                .about("Runs fastp")
                 .arg(
                     Arg::with_name("input")
                         .short("i")
@@ -32,14 +31,14 @@ pub fn get_cli(version: &str) {
                 .arg(
                     Arg::with_name("id")
                         .long("id")
-                        .help("A unique ID is at the start of filename")
+                        .help("Uses id instead of filenames")
                         .takes_value(false)
                 )
                 
                 .arg(
                     Arg::with_name("dry-run")
                         .long("dry")
-                        .help("Check if the program detect the correct files")
+                        .help("Checks if the program detect the correct files")
                         .takes_value(false)
                 )
         )
