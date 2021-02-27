@@ -53,11 +53,11 @@ impl RawSeq {
     fn get_reads(&mut self, reads: &[PathBuf]) {
         reads.iter()
             .for_each(|reads| {
-                match reads.to_string_lossy().to_lowercase() {
-                    s if s.contains("read1") => self.read_1 = PathBuf::from(reads),
-                    s if s.contains("_r1") => self.read_1 = PathBuf::from(reads),
-                    s if s.contains("read2") => self.read_2 = PathBuf::from(reads),
-                    s if s.contains("_r2") => self.read_2 = PathBuf::from(reads),
+                match reads.to_string_lossy().to_uppercase() {
+                    s if s.contains("READ1") => self.read_1 = PathBuf::from(reads),
+                    s if s.contains("_R1") => self.read_1 = PathBuf::from(reads),
+                    s if s.contains("READ2") => self.read_2 = PathBuf::from(reads),
+                    s if s.contains("_R2") => self.read_2 = PathBuf::from(reads),
                     _ => (),
                 }
             });
