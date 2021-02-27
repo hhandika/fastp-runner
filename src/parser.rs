@@ -129,7 +129,7 @@ pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
             lcounts += 1;
         });
 
-    println!("Total files: {}", lcounts);
+    println!("Total samples: {}", lcounts);
 
     raw_seqs
 }
