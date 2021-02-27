@@ -11,16 +11,31 @@ use spinners::{Spinner, Spinners};
 
 use crate::parser::RawSeq;
 
+pub fn check_fastp() {
+    let out = Command::new("fastp")
+        .arg("--version")
+        .output()
+        .expect("CANNOT FIND FASTP. IT MAY BE NOT PROPERLY INSTALLED.");
+    
+    if out.status.success() {
+        println!("[OK]\t{}\n", str::from_utf8(&out.stderr).unwrap().trim());
+    } 
+
+}
+
 pub fn clean_reads(reads: &[RawSeq]) {
     let dir = Path::new("clean_reads");
     check_dir_exists(&dir);
 
     reads.iter()
-        .for_each(|r| {
-            match r.adapter_i7.as_ref() { // Check if i7 contains sequence
-                Some(_) => call_fastp(&dir, &r, true), // if yes -> dual index
-                None => call_fastp(&dir, &r, false),
+        .for_each(|reads| {
+            let mut run = Runner::new(&dir, &reads);
+            match reads.adapter_i7.as_ref() { // Check if i7 contains sequence
+                Some(_) => run.dual_idx = true, // if yes -> dual index
+                None => (),
             };
+
+            run.call_fastp();
         });
 
     println!();
@@ -35,112 +50,157 @@ fn check_dir_exists(dir: &Path) {
     }
 }
 
-fn call_fastp(dir: &Path, input: &RawSeq, is_dual_idx: bool) {
-    let seq_dir = dir.join(&input.dir);
-    let output_r1 = get_out_fnames(&seq_dir, &input.read_1);
-    let output_r2 = get_out_fnames(&seq_dir, &input.read_2);
-        
-    let stdout = io::stdout();
-    let mut buff = io::BufWriter::new(stdout);
+struct Runner {
+    clean_dir: PathBuf,
+    adapter_i5: Option<String>,
+    adapter_i7: Option<String>,
+    dual_idx: bool,
+    auto_idx: bool,
+    in_r1: PathBuf,
+    in_r2: PathBuf,
+    out_r1: PathBuf,
+    out_r2: PathBuf
+}
 
-    let msg = format!("Processing {:?}\t", input.dir);
-    let spin = Spinner::new(Spinners::Moon, msg);
-
-    if is_dual_idx {
-        let adapter_i7 = String::from(input.adapter_i7.as_ref().unwrap());
-        call_fastp_dual_idx(input, &output_r1, &output_r2, &adapter_i7).unwrap();
-    } else if input.auto_idx {
-        call_fastp_auto_idx(&input, &output_r1, &output_r2).unwrap();
-    } else {
-        call_fastp_single_idx(input, &output_r1, &output_r2).unwrap();
+impl Runner {
+    fn new(dir: &Path, input: &RawSeq) -> Self {
+        Self {
+            clean_dir: dir.join(&input.dir),
+            adapter_i5: Some(input.adapter_i5.clone()),
+            adapter_i7: input.adapter_i7.clone(),
+            dual_idx: false,
+            auto_idx: input.auto_idx,
+            in_r1: input.read_1.clone(),
+            in_r2: input.read_2.clone(),
+            out_r1: PathBuf::new(),
+            out_r2: PathBuf::new(),
+        }
     }
 
-    try_creating_symlink(&seq_dir, &input.read_1, &input.read_2);
-    reorganize_reports(&seq_dir);
+    fn call_fastp(&mut self) {
+        self.get_out_fnames();  
+        let stdout = io::stdout();
+        let mut buff = io::BufWriter::new(stdout);
+        let spin = self.set_spinner();
+        
+        let out: Output;
+        if self.dual_idx {
+            out = self.call_fastp_dual_idx();
+        } else if self.auto_idx {
+            out = self.call_fastp_auto_idx();
+        } else {
+            out = self.call_fastp_single_idx();
+        }
+        
+        check_fastp_status(&out);
+        write_stdout(&out); 
+        self.try_creating_symlink();
+        reorganize_reports(&self.clean_dir);
+        
+        spin.stop();
     
-    spin.stop();
+        writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
+    }
 
-    writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
-}
+    fn get_out_fnames(&mut self) {
+        let outdir = self.clean_dir.join("trimmed-reads");
+        fs::create_dir_all(&outdir).unwrap();
+        
+        let r1 = self.in_r1.file_name().unwrap();
+        let r2 = self.in_r2.file_name().unwrap();
+        self.out_r1 = outdir.join(r1);
+        self.out_r2 = outdir.join(r2);
+    }
 
-fn call_fastp_auto_idx(
-    input: &RawSeq, 
-    output_r1: &PathBuf, 
-    output_r2: &PathBuf) 
--> Result<()> {
+    fn set_spinner(&mut self) -> Spinner {
+        let msg = format!("Fastp is processing... \t");
+        let spin = Spinner::new(Spinners::Moon, msg);
 
-    let out = Command::new("fastp")
-        .arg("-i")
-        .arg(input.read_1.clone())
-        .arg("-I")
-        .arg(input.read_2.clone())
-        .arg("--detect_adapter_for_pe")
-        .arg("-o")
-        .arg(output_r1)
-        .arg("-O")
-        .arg(output_r2)
-        .output()
-        .unwrap();
+        spin
+    }
 
-    check_fastp_status(&out);
-    write_stdout(&out);
+    fn call_fastp_auto_idx(&self)-> Output {
+        let out = Command::new("fastp")
+            .arg("-i")
+            .arg(self.in_r1.clone())
+            .arg("-I")
+            .arg(self.in_r2.clone())
+            .arg("--detect_adapter_for_pe")
+            .arg("-o")
+            .arg(self.out_r1.clone())
+            .arg("-O")
+            .arg(self.out_r2.clone())
+            .output()
+            .unwrap();
+    
+        out
+    }
 
-    Ok(())
-}
+    fn call_fastp_single_idx(&self) -> Output {
+        let out: Output = Command::new("fastp")
+            .arg("-i")
+            .arg(self.in_r1.clone())
+            .arg("-I")
+            .arg(self.in_r2.clone())
+            .arg("--adapter_sequence")
+            .arg(String::from(self.adapter_i5.as_ref().unwrap()))
+            .arg("-o")
+            .arg(self.out_r1.clone())
+            .arg("-O")
+            .arg(self.out_r2.clone())
+            .output()
+            .unwrap();
+    
+        out
+    }
 
-fn call_fastp_single_idx(
-    input: &RawSeq, 
-    output_r1: &PathBuf, 
-    output_r2: &PathBuf) 
--> Result<()> {
+    fn call_fastp_dual_idx(&self) -> Output {
+        let out = Command::new("fastp")
+            .arg("-i")
+            .arg(self.in_r1.clone())
+            .arg("-I")
+            .arg(self.in_r2.clone())
+            .arg("--adapter_sequence")
+            .arg(String::from(self.adapter_i5.as_ref().unwrap()))
+            .arg("--adapter_sequence_r2")
+            .arg(String::from(self.adapter_i7.as_ref().unwrap()))
+            .arg("-o")
+            .arg(self.out_r1.clone())
+            .arg("-O")
+            .arg(self.out_r2.clone())
+            .output()
+            .unwrap();
+    
+        out
+    }
 
-    let out: Output = Command::new("fastp")
-        .arg("-i")
-        .arg(input.read_1.clone())
-        .arg("-I")
-        .arg(input.read_2.clone())
-        .arg("--adapter_sequence")
-        .arg(input.adapter_i5.clone())
-        .arg("-o")
-        .arg(output_r1)
-        .arg("-O")
-        .arg(output_r2)
-        .output()
-        .unwrap();
-
-    check_fastp_status(&out);
-    write_stdout(&out);
-
-    Ok(())
-}
-
-fn call_fastp_dual_idx(
-    input: &RawSeq, 
-    output_r1: &PathBuf, 
-    output_r2: &PathBuf,
-    adapter_i7: &str
-) -> Result<()> {
-
-    let out = Command::new("fastp")
-        .arg("-i")
-        .arg(input.read_1.clone())
-        .arg("-I")
-        .arg(input.read_2.clone())
-        .arg("--adapter_sequence")
-        .arg(input.adapter_i5.clone())
-        .arg("--adapter_sequence_r2")
-        .arg(adapter_i7)
-        .arg("-o")
-        .arg(output_r1)
-        .arg("-O")
-        .arg(output_r2)
-        .output()
-        .unwrap();
-
-    check_fastp_status(&out);
-    write_stdout(&out);
-
-    Ok(())
+    fn try_creating_symlink(&self) {
+        if cfg!(target_family="unix") {
+            #[cfg(target_family="unix")]
+            self.create_symlink().unwrap();
+        } else {
+            println!("Skip creating symlink in dir {} for {} and {}. \
+                Operating system is not supported.", 
+                &self.clean_dir.to_string_lossy(), 
+                &self.in_r1.to_string_lossy(), 
+                &self.in_r2.to_string_lossy());
+        }
+    }
+    
+    #[cfg(target_family="unix")]
+    fn create_symlink(&self) -> Result<()> {
+        let symdir = self.clean_dir.join("raw_read_symlinks");
+        fs::create_dir_all(&symdir).unwrap();
+    
+        let path_r1 = symdir.join(self.in_r1.file_name().unwrap());
+        let path_r2 = symdir.join(self.in_r2.file_name().unwrap());
+    
+        unix::fs::symlink(&self.in_r1, path_r1).unwrap();
+        unix::fs::symlink(&self.in_r2, path_r2).unwrap();
+    
+        Ok(())
+    }
+    
 }
 
 // Less likely this will be called 
@@ -177,40 +237,6 @@ fn write_stdout(out: &Output) {
     buff.write_all(&out.stderr).unwrap();
 }
 
-fn get_out_fnames(seq_dir: &Path, fnames: &Path) -> PathBuf {
-    let outdir = seq_dir.join("trimmed-reads");
-    fs::create_dir_all(&outdir).unwrap();
-
-    outdir.join(fnames.file_name().unwrap())
-}
-
-fn try_creating_symlink(dir: &Path, read_1: &Path, read_2: &Path) {
-    if cfg!(target_family="unix") {
-        #[cfg(target_family="unix")]
-        create_symlink(dir, read_1, read_2).unwrap();
-    } else {
-        println!("Skip creating symlink in dir {} for {} and {}. \
-            Operating system is not supported.", 
-            &dir.to_string_lossy(), 
-            &read_1.to_string_lossy(), 
-            &read_2.to_string_lossy());
-    }
-}
-
-#[cfg(target_family="unix")]
-fn create_symlink(dir: &Path, read_1: &Path, read_2: &Path) -> Result<()> {
-    let symdir = dir.join("raw_reads");
-    fs::create_dir_all(&symdir).unwrap();
-
-    let path_r1 = symdir.join(read_1.file_name().unwrap());
-    let path_r2 = symdir.join(read_2.file_name().unwrap());
-
-    unix::fs::symlink(read_1, path_r1).unwrap();
-    unix::fs::symlink(read_2, path_r2).unwrap();
-
-    Ok(())
-}
-
 fn reorganize_reports(dir: &Path) {
     let fastp_html = Path::new("fastp.html");
     let fastp_json = Path::new("fastp.json");
@@ -228,16 +254,4 @@ fn reorganize_reports(dir: &Path) {
     fs::rename(&fastp_html, &html_out).unwrap();
     fs::rename(&fastp_json, &json_out).unwrap();
     fs::rename(&fastp_out, &log_out).unwrap();
-}
-
-pub fn check_fastp() {
-    let out = Command::new("fastp")
-        .arg("--version")
-        .output()
-        .expect("CANNOT FIND FASTP. IT MAY BE NOT PROPERLY INSTALLED.");
-    
-    if out.status.success() {
-        println!("[OK]\t{}\n", str::from_utf8(&out.stderr).unwrap().trim());
-    } 
-
 }
