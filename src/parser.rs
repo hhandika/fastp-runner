@@ -117,7 +117,7 @@ pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
             let lines = split_strings(&line, true);
             let id = String::from(&lines[0]);
             let reads = glob_raw_reads(&input, &id, is_id);
-            check_reads(&reads, &id, &lcounts);
+            check_reads(&reads, &id);
             seq.get_id(&id);
             seq.get_reads(&reads);
             seq.get_dir();
@@ -132,9 +132,11 @@ pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
     raw_seqs
 }
 
-fn check_reads(reads: &[PathBuf], id: &str, lnum: &usize) {
-    if reads.is_empty() {
-        panic!("FILE {} AT LINE {} IS MISSING", id, lnum + 1)
+fn check_reads(reads: &[PathBuf], id: &str) {
+    match reads.len() {
+        0 => panic!("FILE {} IS MISSING", id),
+        2 => (),
+        _ => panic!("REQUIRED TWO READS FOR {}. FOUND: {:?}", id, reads),
     }
 }
 
@@ -227,6 +229,34 @@ fn get_patterns(path: &PathBuf, id: &str, is_id: bool) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    #[should_panic]
+    fn check_reads_panic_test() {
+        let input = PathBuf::from("./some_seq_reads.fastq.gz");
+        let id = "ABC1234";
+        let reads = vec![input];
+        check_reads(&reads, &id);
+    }
+
+    #[test]
+    #[should_panic(expected = "FILE ABC1234 IS MISSING")]
+    fn check_reads_panic_msg_test() {
+        let id = "ABC1234";
+        let reads = Vec::new();
+        check_reads(&reads, &id);
+    }
+
+    #[test]
+    #[should_panic]
+    fn check_multireads_panic_test() {
+        let input_1 = PathBuf::from("./some_seq_read1.fastq.gz");
+        let input_2 = PathBuf::from("./some_seq_read1_l1.fastq.gz");
+        let input_3 = PathBuf::from("./some_seq_read2.fastq.gz");
+        let id = "ABC1234";
+        let reads = vec![input_1, input_2, input_3];
+        check_reads(&reads, &id);
+    }
 
     #[test]
     fn glob_raw_reads_test() {
