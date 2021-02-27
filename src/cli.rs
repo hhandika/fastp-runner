@@ -70,27 +70,3 @@ fn run_fastp_clean(clean_matches: &ArgMatches, version: &str) {
 
     } 
 }
-
-#[cfg(test)]
-mod test {
-    use assert_cmd::Command;
-    use clap::crate_version;
-    use predicates::prelude::*;
-
-    #[test]
-    fn cli_general_test() {
-        let mut cmd = Command::cargo_bin("ftr").unwrap();
-        cmd.arg("--help");
-        cmd.assert().success();
-    }
-
-    #[test]
-    fn cli_version_test() {
-        let version = crate_version!();
-        let mut cmd = Command::cargo_bin("ftr").unwrap();
-        cmd.arg("--version");
-        cmd.assert()
-            .success()
-            .stdout(predicate::str::contains(version));
-    }
-}
