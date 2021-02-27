@@ -81,6 +81,7 @@ impl Runner {
         self.get_out_fnames();  
         let stdout = io::stdout();
         let mut buff = io::BufWriter::new(stdout);
+        self.display_settings();
         let spin = self.set_spinner();
         
         let out: Output;
@@ -92,14 +93,18 @@ impl Runner {
             out = self.call_fastp_single_idx();
         }
         
-        check_fastp_status(&out);
-        write_stdout(&out); 
+        let reports = FastpReports::new(&self.clean_dir);
+        reports.check_fastp_status(&out);
+        reports.write_stdout(&out);
+
         self.try_creating_symlink();
-        reorganize_reports(&self.clean_dir);
+
+        reports.reorganize_reports();
         
         spin.stop();
     
         writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
+        writeln!(buff).unwrap();
     }
 
     fn get_out_fnames(&mut self) {
@@ -112,8 +117,29 @@ impl Runner {
         self.out_r2 = outdir.join(r2);
     }
 
+    fn display_settings(&self) {
+        let stdout = io::stdout();
+        let mut buff = io::BufWriter::new(stdout);
+        
+        writeln!(buff).unwrap();
+        writeln!(buff, "\x1b[0;34mSample\t\t: {}\x1b[0m", &self.clean_dir.to_string_lossy()).unwrap();
+        writeln!(buff, "Input R1\t: {}", &self.in_r1.to_string_lossy()).unwrap();
+        writeln!(buff, "Input R2\t: {}", &self.in_r2.to_string_lossy()).unwrap();
+        writeln!(buff, "Output R1\t: {}", &self.out_r1.file_name().unwrap().to_string_lossy()).unwrap();
+        writeln!(buff, "Output R2\t: {}", &self.out_r2.file_name().unwrap().to_string_lossy()).unwrap();
+        
+        if self.auto_idx {
+            writeln!(buff, "Adapters\t: AUTO-DETECT").unwrap();
+        } else if !self.dual_idx {
+            writeln!(buff, "Adapters\t: {}", self.adapter_i5.as_ref().unwrap()).unwrap();
+        } else {
+            writeln!(buff, "Adapter i5\t: {}", self.adapter_i5.as_ref().unwrap()).unwrap();
+            writeln!(buff, "Adapters i7\t: {}", self.adapter_i7.as_ref().unwrap()).unwrap();
+        }
+    }
+
     fn set_spinner(&mut self) -> Spinner {
-        let msg = format!("Fastp is processing... \t");
+        let msg = format!("Processing\t: ");
         let spin = Spinner::new(Spinners::Moon, msg);
 
         spin
@@ -203,55 +229,64 @@ impl Runner {
     
 }
 
-// Less likely this will be called 
-// because potential input errors that cause fastp
-// to failed is mitigated before passing the input
-// to it.
-fn check_fastp_status(out: &Output) {
-    if !out.status.success() {
-        fastp_is_failed(out);
+struct FastpReports {
+    dir: PathBuf,
+    html: PathBuf,
+    json: PathBuf,
+    log: PathBuf,
+}
+
+impl FastpReports {
+    fn new(dir: &Path) -> Self {
+        Self {
+            dir: dir.join("fastp_reports"),
+            html: PathBuf::from("fastp.html"),
+            json: PathBuf::from("fastp.json"),
+            log: PathBuf::from("fastp.log"),
+        }
     }
 
-    let fastp_html = Path::new("fastp.html");
-    let fastp_json = Path::new("fastp.json");
+    // Less likely this will be called 
+    // because potential input errors that cause fastp
+    // to failed is mitigated before passing the input
+    // to it.
+    fn check_fastp_status(&self, out: &Output) {
+        if !out.status.success() {
+            self.fastp_is_failed(out);
+        }
 
-    if !fastp_html.is_file() || !fastp_json.is_file() {
-        fastp_is_failed(out);
+        if !self.html.is_file() || !self.json.is_file() {
+            self.fastp_is_failed(out);
+        }
     }
-}
-
-fn fastp_is_failed(out: &Output) {
-    io::stdout().write_all(&out.stdout).unwrap();
-    io::stdout().write_all(&out.stderr).unwrap();
-    panic!("FASTP FAILED TO RUN");
-}
-
-// We remove the clutter of fastp stdout in the console. 
-// Instead, we save it as a log file.
-fn write_stdout(out: &Output) {
-    let fname = fs::File::create("fastp.log").unwrap();
-    let mut buff = BufWriter::new(&fname);
-
-    // Rust recognize fastp console output as stderr
-    // Hence, we write stderr instead of stdout.
-    buff.write_all(&out.stderr).unwrap();
-}
-
-fn reorganize_reports(dir: &Path) {
-    let fastp_html = Path::new("fastp.html");
-    let fastp_json = Path::new("fastp.json");
-    let fastp_out = Path::new("fastp.log");
-
-    let parent = dir.join("fastp_reports");
-
-    fs::create_dir_all(&parent).unwrap();
-
-    let html_out = parent.join(&fastp_html);
-    let json_out = parent.join(&fastp_json);
-    let log_out = parent.join(&fastp_out);
     
-    // Move json, html, and log reports
-    fs::rename(&fastp_html, &html_out).unwrap();
-    fs::rename(&fastp_json, &json_out).unwrap();
-    fs::rename(&fastp_out, &log_out).unwrap();
+    fn fastp_is_failed(&self, out: &Output) {
+        io::stdout().write_all(&out.stdout).unwrap();
+        io::stdout().write_all(&out.stderr).unwrap();
+        panic!("FASTP FAILED TO RUN");
+    }
+
+    // We remove the clutter of fastp stdout in the console. 
+    // Instead, we save it as a log file.
+    fn write_stdout(&self, out: &Output) {
+        let fname = fs::File::create(&self.log).unwrap();
+        let mut buff = BufWriter::new(&fname);
+
+        // Rust recognize fastp console output as stderr
+        // Hence, we write stderr instead of stdout.
+        buff.write_all(&out.stderr).unwrap();
+    }
+
+    fn reorganize_reports(&self) {
+        fs::create_dir_all(&self.dir).unwrap();
+    
+        let html_out = self.dir.join(&self.html);
+        let json_out = self.dir.join(&self.json);
+        let log_out = self.dir.join(&self.log);
+        
+        // Move json, html, and log reports
+        fs::rename(&self.html, &html_out).unwrap();
+        fs::rename(&self.json, &json_out).unwrap();
+        fs::rename(&self.log, &log_out).unwrap();
+    }
 }
