@@ -136,7 +136,8 @@ pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
 
 fn check_reads(reads: &[PathBuf], id: &str) {
     match reads.len() {
-        0 => panic!("FILE {} IS MISSING", id),
+        0 => panic!("CANNOT FIND FILE {}. \
+                USE FLAG --id IF YOU USE THE FILE ID.", id),
         2 => (),
         _ => panic!("REQUIRED TWO READS FOR {}. FOUND: {:?}", id, reads),
     }
@@ -242,7 +243,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "FILE ABC1234 IS MISSING")]
+    #[should_panic(expected = "CANNOT FIND FILE ABC1234. USE FLAG --id IF YOU USE THE FILE ID.")]
     fn check_reads_panic_msg_test() {
         let id = "ABC1234";
         let reads = Vec::new();
