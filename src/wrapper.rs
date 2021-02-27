@@ -26,9 +26,9 @@ pub fn check_fastp() {
 pub fn clean_reads(reads: &[RawSeq]) {
     let dir = Path::new("clean_reads");
     check_dir_exists(&dir);
-
     reads.iter()
         .for_each(|reads| {
+            println!("================\x1b[0;34mProcessing {}\x1b[0m================", &reads.id);
             let mut run = Runner::new(&dir, &reads);
             match reads.adapter_i7.as_ref() { // Check if i7 contains sequence
                 Some(_) => run.dual_idx = true, // if yes -> dual index
@@ -79,8 +79,6 @@ impl Runner {
 
     fn call_fastp(&mut self) {
         self.get_out_fnames();  
-        let stdout = io::stdout();
-        let mut buff = io::BufWriter::new(stdout);
         self.display_settings();
         let spin = self.set_spinner();
         
@@ -93,18 +91,20 @@ impl Runner {
             out = self.call_fastp_single_idx();
         }
         
-        let reports = FastpReports::new(&self.clean_dir);
+        let mut reports = FastpReports::new(&self.clean_dir);
         reports.check_fastp_status(&out);
         reports.write_stdout(&out);
 
         self.try_creating_symlink();
 
         reports.reorganize_reports();
-        
         spin.stop();
-    
-        writeln!(buff, "\x1b[0;32mDONE!\x1b[0m").unwrap();
-        writeln!(buff).unwrap();
+
+        let stdout = io::stdout();
+        let mut handle = stdout.lock();
+        writeln!(handle, "\x1b[0;32mDONE!\x1b[0m").unwrap();
+
+        reports.display_report_paths();
     }
 
     fn get_out_fnames(&mut self) {
@@ -121,12 +121,12 @@ impl Runner {
         let stdout = io::stdout();
         let mut buff = io::BufWriter::new(stdout);
         
-        writeln!(buff).unwrap();
-        writeln!(buff, "\x1b[0;34mSample\t\t: {}\x1b[0m", &self.clean_dir.to_string_lossy()).unwrap();
+        // writeln!(buff).unwrap();
+        writeln!(buff, "Target dir\t: {}", &self.clean_dir.to_string_lossy()).unwrap();
         writeln!(buff, "Input R1\t: {}", &self.in_r1.to_string_lossy()).unwrap();
         writeln!(buff, "Input R2\t: {}", &self.in_r2.to_string_lossy()).unwrap();
-        writeln!(buff, "Output R1\t: {}", &self.out_r1.file_name().unwrap().to_string_lossy()).unwrap();
-        writeln!(buff, "Output R2\t: {}", &self.out_r2.file_name().unwrap().to_string_lossy()).unwrap();
+        writeln!(buff, "Output R1\t: {}", &self.out_r1.to_string_lossy()).unwrap();
+        writeln!(buff, "Output R2\t: {}", &self.out_r2.to_string_lossy()).unwrap();
         
         if self.auto_idx {
             writeln!(buff, "Adapters\t: AUTO-DETECT").unwrap();
@@ -136,10 +136,12 @@ impl Runner {
             writeln!(buff, "Adapter i5\t: {}", self.adapter_i5.as_ref().unwrap()).unwrap();
             writeln!(buff, "Adapters i7\t: {}", self.adapter_i7.as_ref().unwrap()).unwrap();
         }
+
+        writeln!(buff).unwrap();
     }
 
     fn set_spinner(&mut self) -> Spinner {
-        let msg = format!("Processing\t: ");
+        let msg = format!("Fastp is processing...\t");
         let spin = Spinner::new(Spinners::Moon, msg);
 
         spin
@@ -234,6 +236,9 @@ struct FastpReports {
     html: PathBuf,
     json: PathBuf,
     log: PathBuf,
+    html_out: PathBuf,
+    json_out: PathBuf,
+    log_out: PathBuf,
 }
 
 impl FastpReports {
@@ -243,6 +248,9 @@ impl FastpReports {
             html: PathBuf::from("fastp.html"),
             json: PathBuf::from("fastp.json"),
             log: PathBuf::from("fastp.log"),
+            html_out: PathBuf::new(),
+            json_out: PathBuf::new(),
+            log_out: PathBuf::new(),
         }
     }
 
@@ -277,16 +285,28 @@ impl FastpReports {
         buff.write_all(&out.stderr).unwrap();
     }
 
-    fn reorganize_reports(&self) {
+    fn reorganize_reports(&mut self) {
         fs::create_dir_all(&self.dir).unwrap();
     
-        let html_out = self.dir.join(&self.html);
-        let json_out = self.dir.join(&self.json);
-        let log_out = self.dir.join(&self.log);
+        self.html_out = self.dir.join(&self.html);
+        self.json_out = self.dir.join(&self.json);
+        self.log_out = self.dir.join(&self.log);
         
         // Move json, html, and log reports
-        fs::rename(&self.html, &html_out).unwrap();
-        fs::rename(&self.json, &json_out).unwrap();
-        fs::rename(&self.log, &log_out).unwrap();
+        fs::rename(&self.html, &self.html_out).unwrap();
+        fs::rename(&self.json, &self.json_out).unwrap();
+        fs::rename(&self.log, &self.log_out).unwrap();
     }
+
+    fn display_report_paths(&self) {
+        let stdout = io::stdout();
+        let mut handle = io::BufWriter::new(stdout);
+
+        writeln!(handle).unwrap();
+        writeln!(handle, "Fastp Reports:").unwrap();
+        writeln!(handle, "1. {}", self.html_out.to_string_lossy()).unwrap();
+        writeln!(handle, "2. {}", self.json_out.to_string_lossy()).unwrap();
+        writeln!(handle, "3. {}", self.log_out.to_string_lossy()).unwrap();
+        writeln!(handle).unwrap();
+    }   
 }
