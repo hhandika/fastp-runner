@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::io::{self, Write};
 
 use crate::parser::{self, RawSeq};
-use crate::wrapper;
+use crate::cleaner;
 
 pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
     display_fastp_status();
@@ -47,10 +47,10 @@ pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
 pub fn process_input(input: &PathBuf, is_id: bool, is_rename: bool) {
     display_fastp_status();
     let reads: Vec<RawSeq> = parser::parse_csv(input, is_id, is_rename);
-    wrapper::clean_reads(&reads);
+    cleaner::clean_reads(&reads);
 }
 
 fn display_fastp_status() {
     println!("Checking fastp...");
-    wrapper::check_fastp();
+    cleaner::check_fastp();
 }
