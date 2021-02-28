@@ -28,7 +28,7 @@ pub fn clean_reads(reads: &[RawSeq]) {
     check_dir_exists(&dir);
     reads.iter()
         .for_each(|reads| {
-            println!("================\x1b[0;34 mProcessing {}\x1b[0m================", &reads.id);
+            println!("\x1b[0;33m================Processing {}================\x1b[0m", &reads.id);
             let mut run = Runner::new(&dir, &reads);
             match reads.adapter_i7.as_ref() { // Check if i7 contains sequence
                 Some(_) => run.dual_idx = true, // if yes -> dual index
@@ -43,7 +43,7 @@ pub fn clean_reads(reads: &[RawSeq]) {
 
 fn check_dir_exists(dir: &Path) {
     if dir.exists() {
-        panic!("CLEAN READ DIR EXISTS");
+        panic!("CLEAN READ DIR EXISTS. PLEASE RENAME OR REMOVE IT");
     } else { // if not create one
         fs::create_dir_all(dir)
         .expect("CAN'T CREATE CLEAN READ DIR");
