@@ -27,8 +27,8 @@ impl RawSeq {
             read_2: PathBuf::new(),
             adapter_i5: None,
             adapter_i7: None,
-            auto_idx: false,
             outname: None,
+            auto_idx: false,
         }
     }
 
