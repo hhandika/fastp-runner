@@ -9,13 +9,13 @@ use crate::itru;
 
 pub struct RawSeq {
     pub id: String, 
+    pub dir: PathBuf,
     pub read_1: PathBuf,
     pub read_2: PathBuf,
     pub adapter_i5: Option<String>,
     pub adapter_i7: Option<String>,
-    pub dir: PathBuf,
+    pub outname: Option<String>,
     pub auto_idx: bool,
-    pub outname: Option<String>
 }
 
 impl RawSeq {
