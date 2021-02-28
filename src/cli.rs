@@ -64,7 +64,8 @@ fn run_fastp_clean(matches: &ArgMatches, version: &str) {
         if matches.is_present("dry-run") {
             io::dry_run(&path, is_id);
         } else {
-            io::process_input(&path, is_id, version);
+            println!("Starting fastp-runner v{}...\n", version);
+            io::process_input(&path, is_id);
         }
     } 
 }
