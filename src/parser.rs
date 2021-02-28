@@ -157,45 +157,57 @@ fn check_reads(reads: &[PathBuf], id: &str) {
 fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
     match adapters.len() {
         1 => seq.get_adapter_auto(),
-        2 => {
-            let i5 = adapters[1].to_uppercase();
-            if is_insert_missing(&i5) {
-                panic!("INSERT MISSING!");
-            } else {
-                seq.get_adapter_single(&i5);
-            }  
-        },
-
-        3 => {
-            let i5 = adapters[1].to_uppercase();
-            if is_insert_missing(&i5) {
-                panic!("INSERT MISSING!");
-            } else {
-            let i7 = adapters[2].to_uppercase();
-            seq.get_adapter_dual(&i5, &i7);
-            }
-        },
-
-        4 => {
-            let i7 = adapters[2].to_uppercase();
-            if is_insert_missing(&adapters[1]) {
-                let i5 = itru::insert_tag(&adapters[1], &adapters[3]);  
-                seq.get_adapter_dual(&i5, &i7);
-            } else {
-                panic!("TOO MANY COLUMNS!");
-            }
-        }
-
-        5 => {
-            let i5 = itru::insert_tag(&adapters[1], &adapters[3]);
-            let i7 = itru::insert_tag(&adapters[2], &adapters[4]);
-            seq.get_adapter_dual(&i5, &i7);
-        },
-
+        2 => get_adapter_single(seq, &adapters[1]),
+        3 => get_adapter_dual(seq, &adapters[1], &adapters[2]),
+        4 => get_insert_single(seq, &adapters[1], &adapters[2], &adapters[3]),
+        5 => get_insert_dual(seq, &adapters[1], &adapters[2], &adapters[3], &adapters[4]),
         _ => panic!("Unexpected cvs columns. It should be \
             2 columns for single index and 3 column for \
             dual index. The app received {} columns", adapters.len()),
     }
+}
+
+fn get_adapter_single(seq: &mut RawSeq, adapters: &str) {
+    let i5 = adapters.to_uppercase();
+    if is_insert_missing(&i5) {
+        panic!("INSERT MISSING!");
+    } else {
+        seq.get_adapter_single(&i5);
+    }  
+}
+
+fn get_adapter_dual(seq: &mut RawSeq, i5: &str, i7: &str) {
+    let adapter_i5 = i5.to_uppercase();
+    if is_insert_missing(&adapter_i5) {
+        panic!("INSERT MISSING!");
+    } else {
+        let adapter_i7 = i7.to_uppercase();
+        seq.get_adapter_dual(&adapter_i5, &adapter_i7);
+    }
+}
+
+fn get_insert_single(seq: &mut RawSeq, i5: &str, i7: &str, insert: &str) {
+    let adapter_i7 = i7.to_uppercase();
+    if is_insert_missing(i5) {
+        let adapter_i5 = itru::insert_tag(i5, insert);  
+        seq.get_adapter_dual(&adapter_i5, &adapter_i7);
+    } else {
+        panic!("TOO MANY COLUMNS!");
+    }
+}
+
+fn get_insert_dual(
+    seq: &mut RawSeq, 
+    i5: &str, 
+    i7: &str, 
+    in_i5: &str,
+    in_i7: &str
+    )
+{
+    let i5 = itru::insert_tag(i5, in_i5);
+    let i7 = itru::insert_tag(i7, in_i7);
+    seq.get_adapter_dual(&i5, &i7);
+
 }
 
 fn is_insert_missing(adapter: &str) -> bool {
