@@ -7,7 +7,6 @@ use glob::{glob_with, MatchOptions};
 
 use crate::itru;
 
-#[derive(Clone)]
 pub struct RawSeq {
     pub id: String, 
     pub read_1: PathBuf,
@@ -83,19 +82,31 @@ impl RawSeq {
     }
 
     fn get_adapter_dual(&mut self, adapter_i5: &str, adapter_i7: &str) {
-        let adapter_i5 = String::from(adapter_i5.trim());
-        let adapter_i7 = String::from(adapter_i7.trim());
+        let i5 = String::from(adapter_i5.trim());
+        let i7 = String::from(adapter_i7.trim());
 
-        if !adapter_i5.is_empty() && !adapter_i7.is_empty() {
-            self.adapter_i5 = Some(adapter_i5);
-            self.adapter_i7 = Some(adapter_i7);
-        } else if !adapter_i5.is_empty() && adapter_i7.is_empty() {
-            self.adapter_i5 = Some(adapter_i5);
-        } else if adapter_i5.is_empty() && adapter_i7.is_empty(){
+        if self.is_both_idx_exist(&i5, &i7) {
+            self.adapter_i5 = Some(i5);
+            self.adapter_i7 = Some(i7);
+        } else if self.is_missing_i7(&i5, &i7) {
+            self.adapter_i5 = Some(i5);
+        } else if self.is_missing_both_idx(&i5, &i7) {
             self.get_adapter_auto();
         } else {
-            self.adapter_i5 = Some(adapter_i5);
+            self.adapter_i5 = Some(i5);
         }
+    }
+
+    fn is_both_idx_exist(&self, i5: &str, i7: &str) -> bool {
+        !i5.is_empty() && !i7.is_empty()
+    }
+
+    fn is_missing_i7(&self, i5: &str, i7: &str) -> bool {
+        !i5.is_empty() && i7.is_empty()
+    }
+
+    fn is_missing_both_idx(&self, i5: &str, i7: &str) -> bool {
+        i5.is_empty() && i7.is_empty()
     }
 
     fn get_adapter_auto(&mut self) {

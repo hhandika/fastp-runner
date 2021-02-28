@@ -52,28 +52,29 @@ fn check_dir_exists(dir: &Path) {
     }
 }
 
-struct Runner {
+struct Runner<'a> {
     clean_dir: PathBuf,
     dual_idx: bool,
     out_r1: PathBuf,
     out_r2: PathBuf,
-    reads: RawSeq,
+    reads: &'a RawSeq,
 }
 
-impl Runner {
-    fn new(dir: &Path, input: &RawSeq) -> Self {
+impl<'a> Runner<'a> {
+    fn new(dir: &Path, input: &'a RawSeq) -> Self {
         Self {
             clean_dir: dir.join(&input.dir),
             dual_idx: false,
             out_r1: PathBuf::new(),
             out_r2: PathBuf::new(),
-            reads: input.clone(),
+            reads: input,
         }
     }
 
     fn process_reads(&mut self) { 
         let spin = self.set_spinner();
         let out = self.call_fastp();
+        
         let mut reports = FastpReports::new(&self.clean_dir);
         
         reports.check_fastp_status(&out);
@@ -137,6 +138,7 @@ impl Runner {
             .arg(self.reads.read_1.clone())
             .arg("-I")
             .arg(self.reads.read_2.clone())
+            .arg("-o")
             .arg(self.out_r1.clone())
             .arg("-O")
             .arg(self.out_r2.clone());
