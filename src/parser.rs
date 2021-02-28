@@ -15,7 +15,7 @@ pub struct RawSeq {
     pub adapter_i7: Option<String>,
     pub dir: PathBuf,
     pub auto_idx: bool,
-    pub outname: Option<String>
+    pub outname: Option<PathBuf>
 }
 
 impl RawSeq {
@@ -113,6 +113,10 @@ impl RawSeq {
         self.auto_idx = true;
     }
 
+    fn get_output_name(&mut self, fname: &str) {
+        self.outname = Some(PathBuf::from(fname));
+    }
+
 }
 
 pub fn parse_csv(input: &PathBuf, is_id: bool, is_rename: bool) -> Vec<RawSeq> {
@@ -175,11 +179,31 @@ fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
 fn get_adapter_rename(seq: &mut RawSeq, adapters: &[String]) {
     match adapters.len() {
         1 => panic!("MISSING AN OUTPUT NAME COLUMN"),
-        2 => seq.get_adapter_auto(),
-        3 => get_adapter_single(seq, &adapters[1]),
-        4 => get_adapter_dual(seq, &adapters[1], &adapters[2]),
-        5 => get_insert_single(seq, &adapters[1], &adapters[2], &adapters[3]),
-        6 => get_insert_dual(seq, &adapters[1], &adapters[2], &adapters[3], &adapters[4]),
+        2 => {
+            seq.get_output_name(&adapters[1]);
+            seq.get_adapter_auto();
+        }
+        
+        3 => {
+            seq.get_output_name(&adapters[1]);
+            get_adapter_single(seq, &adapters[2]);
+        },
+
+        4 => {
+            seq.get_output_name(&adapters[1]);
+            get_adapter_dual(seq, &adapters[2], &adapters[3]);
+        }
+        
+        5 => {
+            seq.get_output_name(&adapters[1]);
+            get_insert_single(seq, &adapters[2], &adapters[3], &adapters[4]);
+        }
+        
+        6 => {
+            seq.get_output_name(&adapters[1]);
+            get_insert_dual(seq, &adapters[2], &adapters[3], &adapters[4], &adapters[5]);
+        }
+        
         _ => panic!("TOO MANY COLUMN. SIX MAX FOR RENAMING")
     }
 }
