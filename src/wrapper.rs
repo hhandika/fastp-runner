@@ -68,7 +68,7 @@ impl Runner {
     fn new(dir: &Path, input: &RawSeq) -> Self {
         Self {
             clean_dir: dir.join(&input.dir),
-            adapter_i5: Some(input.adapter_i5.clone()),
+            adapter_i5: input.adapter_i5.clone(),
             adapter_i7: input.adapter_i7.clone(),
             dual_idx: false,
             auto_idx: input.auto_idx,

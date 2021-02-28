@@ -17,20 +17,21 @@ pub fn dry_run(input: &PathBuf, is_id: bool) {
 
             match r.adapter_i7.as_ref() {
                 Some(i7) => {
-                    println!("Adapter i5\t: {}", r.adapter_i5);
+                    println!("Adapter i5\t: {}", r.adapter_i5.as_ref().unwrap());
                     println!("Adapter i7\t: {}", i7);
                 }
                 None => {
                     if r.auto_idx {
                         println!("Adapter\t\t: AUTO-DETECT");
                     } else {
-                        println!("Adapter\t\t: {}", r.adapter_i5);
+                        println!("Adapter\t\t: {}", r.adapter_i5.as_ref().unwrap());
                     }
                 }
             };
 
             println!();
         });
+
 }
 
 pub fn process_input(input: &PathBuf, is_id: bool) {

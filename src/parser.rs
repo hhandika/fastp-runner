@@ -12,7 +12,7 @@ pub struct RawSeq {
     pub id: String, 
     pub read_1: PathBuf,
     pub read_2: PathBuf,
-    pub adapter_i5: String,
+    pub adapter_i5: Option<String>,
     pub adapter_i7: Option<String>,
     pub dir: PathBuf,
     pub auto_idx: bool,
@@ -26,7 +26,7 @@ impl RawSeq {
             dir: PathBuf::new(),
             read_1: PathBuf::new(),
             read_2: PathBuf::new(),
-            adapter_i5: String::new(),
+            adapter_i5: None,
             adapter_i7: None,
             auto_idx: false,
             outname: None,
@@ -79,7 +79,7 @@ impl RawSeq {
     }
 
     fn get_adapter_single(&mut self, adapter: &str) {
-        self.adapter_i5 = String::from(adapter);
+        self.adapter_i5 = Some(String::from(adapter));
     }
 
     fn get_adapter_dual(&mut self, adapter_i5: &str, adapter_i7: &str) {
@@ -87,14 +87,14 @@ impl RawSeq {
         let adapter_i7 = String::from(adapter_i7.trim());
 
         if !adapter_i5.is_empty() && !adapter_i7.is_empty() {
-            self.adapter_i5 = adapter_i5;
+            self.adapter_i5 = Some(adapter_i5);
             self.adapter_i7 = Some(adapter_i7);
         } else if !adapter_i5.is_empty() && adapter_i7.is_empty() {
-            self.adapter_i5 = adapter_i5;
+            self.adapter_i5 = Some(adapter_i5);
         } else if adapter_i5.is_empty() && adapter_i7.is_empty(){
             self.get_adapter_auto();
         } else {
-            self.adapter_i5 = adapter_i5;
+            self.adapter_i5 = Some(adapter_i5);
         }
     }
 
@@ -295,7 +295,7 @@ mod test {
                 let dir = input.parent().unwrap();
                 assert_eq!(dir.join("test_1_cde_R1.fastq"), s.read_1);
                 assert_eq!(dir.join("test_1_cde_R2.fastq"), s.read_2);
-                assert_eq!("AGTCT", s.adapter_i5);
+                assert_eq!("AGTCT", s.adapter_i5.as_ref().unwrap());
             });
     }
 
@@ -310,7 +310,7 @@ mod test {
                 let dir = input.parent().unwrap();
                 assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
                 assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
-                assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5);
+                assert_eq!("ATGTCTCTCTATATATACT", s.adapter_i5.as_ref().unwrap());
             });
     }
 
@@ -326,7 +326,7 @@ mod test {
                 let dir = input.parent().unwrap();
                 assert_eq!(dir.join("some_animals_XYZ12345_R1.fastq.gz"), s.read_1);
                 assert_eq!(dir.join("some_animals_XYZ12345_R2.fastq.gz"), s.read_2);
-                assert_eq!(i5, s.adapter_i5);
+                assert_eq!(i5, s.adapter_i5.as_ref().unwrap());
                 assert_eq!(true, s.adapter_i7.is_some());
                 assert_eq!(i7, String::from(s.adapter_i7.as_ref().unwrap()))
         });
@@ -359,7 +359,7 @@ mod test {
 
         get_adapters(&mut seq, &adapters);
 
-        assert_eq!("ATGTGTGTGATATC", seq.adapter_i5);
+        assert_eq!("ATGTGTGTGATATC", seq.adapter_i5.as_ref().unwrap());
 
     }
 
@@ -377,7 +377,7 @@ mod test {
 
         get_adapters(&mut seq, &adapters);
 
-        assert_eq!("ATGTGTGTGATAATATC", seq.adapter_i5);
+        assert_eq!("ATGTGTGTGATAATATC", seq.adapter_i5.as_ref().unwrap());
         assert_eq!("ATTTGTGTTTCGGCCC", String::from(seq.adapter_i7.as_ref().unwrap()));
     }
 
