@@ -41,6 +41,13 @@ pub fn get_cli(version: &str) {
                         .help("Checks if the program detect the correct files")
                         .takes_value(false)
                 )
+
+                .arg(
+                    Arg::with_name("rename")
+                        .long("rename")
+                        .help("Checks if the program detect the correct files")
+                        .takes_value(false)
+                )
         )
         
         .get_matches();
@@ -56,16 +63,21 @@ fn run_fastp_clean(matches: &ArgMatches, version: &str) {
     if matches.is_present("input") {
         let path = PathBuf::from(matches.value_of("input").unwrap());
         let mut is_id = false;
+        let mut is_rename = false;
 
         if matches.is_present("id") {
             is_id = true;
         }
 
+        if matches.is_present("rename") {
+            is_rename = true;
+        }
+
         if matches.is_present("dry-run") {
-            io::dry_run(&path, is_id);
+            io::dry_run(&path, is_id, is_rename);
         } else {
             println!("Starting fastp-runner v{}...\n", version);
-            io::process_input(&path, is_id);
+            io::process_input(&path, is_id, is_rename);
         }
     } 
 }

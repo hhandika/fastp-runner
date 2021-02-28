@@ -115,7 +115,7 @@ impl RawSeq {
 
 }
 
-pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
+pub fn parse_csv(input: &PathBuf, is_id: bool, is_rename: bool) -> Vec<RawSeq> {
     let file = File::open(input).unwrap();
     let buff = BufReader::new(file);
 
@@ -134,7 +134,12 @@ pub fn parse_csv(input: &PathBuf, is_id: bool) -> Vec<RawSeq> {
             seq.get_id(&id);
             seq.get_reads(&reads);
             seq.get_dir();
-            get_adapters(&mut seq, &lines);
+            if is_rename {
+                get_adapter_rename(&mut seq, &lines);
+            } else {
+                get_adapters(&mut seq, &lines);
+            }
+            
 
             raw_seqs.push(seq);
             lcounts += 1;
@@ -167,6 +172,18 @@ fn get_adapters(seq: &mut RawSeq, adapters: &[String]) {
     }
 }
 
+fn get_adapter_rename(seq: &mut RawSeq, adapters: &[String]) {
+    match adapters.len() {
+        1 => panic!("MISSING AN OUTPUT NAME COLUMN"),
+        2 => seq.get_adapter_auto(),
+        3 => get_adapter_single(seq, &adapters[1]),
+        4 => get_adapter_dual(seq, &adapters[1], &adapters[2]),
+        5 => get_insert_single(seq, &adapters[1], &adapters[2], &adapters[3]),
+        6 => get_insert_dual(seq, &adapters[1], &adapters[2], &adapters[3], &adapters[4]),
+        _ => panic!("TOO MANY COLUMN. SIX MAX FOR RENAMING")
+    }
+}
+
 fn get_adapter_single(seq: &mut RawSeq, adapters: &str) {
     let i5 = adapters.to_uppercase();
     if is_insert_missing(&i5) {
@@ -178,8 +195,9 @@ fn get_adapter_single(seq: &mut RawSeq, adapters: &str) {
 
 fn get_adapter_dual(seq: &mut RawSeq, i5: &str, i7: &str) {
     let adapter_i5 = i5.to_uppercase();
-    if is_insert_missing(&adapter_i5) {
-        panic!("INSERT MISSING!");
+    if is_insert_missing(&adapter_i5) { // i7 is a tag
+        let adapter_i5 = itru::insert_tag(i5, i7); 
+        seq.get_adapter_single(&adapter_i5);
     } else {
         let adapter_i7 = i7.to_uppercase();
         seq.get_adapter_dual(&adapter_i5, &adapter_i7);
@@ -309,7 +327,7 @@ mod test {
     fn parse_csv_test() {
         let input = PathBuf::from("test_files/test.csv");
 
-        let seq = parse_csv(&input, true);
+        let seq = parse_csv(&input, true, false);
 
         assert_eq!(1, seq.len());
         
@@ -326,7 +344,7 @@ mod test {
     fn parse_csv_pattern_test() {
         let input = PathBuf::from("test_files/test2.csv");
 
-        let seq = parse_csv(&input, true);
+        let seq = parse_csv(&input, true, false);
     
         seq.iter()
             .for_each(|s| {
@@ -341,7 +359,7 @@ mod test {
     fn parse_csv_dual_indexes_test() {
         let input = PathBuf::from("test_files/dual_index_test.csv");
 
-        let seq = parse_csv(&input, true);
+        let seq = parse_csv(&input, true, false);
         let i5 = "ATGTCTCTCTATATATACT";
         let i7 = String::from("ATGTCTCTCTATATATGCT");
         seq.iter()
@@ -360,7 +378,7 @@ mod test {
     fn parse_csv_panic_test() {
         let input = PathBuf::from("test_files/invalid.csv");
 
-        parse_csv(&input, true);
+        parse_csv(&input, true, false);
     }
 
     #[test]
@@ -368,7 +386,7 @@ mod test {
     fn parse_csv_multicols_panic_test() {
         let input = PathBuf::from("test_files/invalid_multicols.csv");
 
-        parse_csv(&input, true);
+        parse_csv(&input, true, false);
     }
 
     #[test]

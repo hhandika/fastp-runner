@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use crate::parser::{self, RawSeq};
 use crate::wrapper;
 
-pub fn dry_run(input: &PathBuf, is_id: bool) {
+pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
     display_fastp_status();
-    let reads: Vec<RawSeq> = parser::parse_csv(input, is_id);
+    let reads: Vec<RawSeq> = parser::parse_csv(input, is_id, is_rename);
 
     println!();
     reads.iter()
@@ -34,9 +34,9 @@ pub fn dry_run(input: &PathBuf, is_id: bool) {
 
 }
 
-pub fn process_input(input: &PathBuf, is_id: bool) {
+pub fn process_input(input: &PathBuf, is_id: bool, is_rename: bool) {
     display_fastp_status();
-    let reads: Vec<RawSeq> = parser::parse_csv(input, is_id);
+    let reads: Vec<RawSeq> = parser::parse_csv(input, is_id, is_rename);
     wrapper::clean_reads(&reads);
 }
 
