@@ -36,7 +36,8 @@ pub fn clean_reads(reads: &[RawSeq]) {
             }
 
             run.get_out_fnames(); 
-            run.call_fastp();
+            run.display_settings();
+            run.process_sample();
         });
 
     println!();
@@ -78,8 +79,7 @@ impl Runner {
         }
     }
 
-    fn call_fastp(&mut self) { 
-        self.display_settings();
+    fn process_sample(&mut self) { 
         let spin = self.set_spinner();
         
         let out: Output;
@@ -96,16 +96,17 @@ impl Runner {
         reports.write_stdout(&out);
 
         self.try_creating_symlink();
-
         reports.reorganize_reports();
         spin.stop();
+        self.print_done();
+        reports.display_report_paths();
+    }
 
+    fn print_done(&self) {
         let stdout = io::stdout();
         let mut handle = stdout.lock();
         writeln!(handle, "\x1b[0;32mDONE!\x1b[0m").unwrap();
-
-        reports.display_report_paths();
-    }
+    }   
 
     fn get_out_fnames(&mut self) {
         let outdir = self.clean_dir.join("trimmed_reads");
