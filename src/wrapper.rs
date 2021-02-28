@@ -37,7 +37,7 @@ pub fn clean_reads(reads: &[RawSeq]) {
 
             run.get_out_fnames(); 
             run.display_settings();
-            run.process_sample();
+            run.process_reads();
         });
 
     println!();
@@ -79,7 +79,7 @@ impl Runner {
         }
     }
 
-    fn process_sample(&mut self) { 
+    fn process_reads(&mut self) { 
         let spin = self.set_spinner();
         
         let out: Output;
