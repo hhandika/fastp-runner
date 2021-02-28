@@ -29,12 +29,12 @@ pub fn clean_reads(reads: &[RawSeq]) {
     reads.iter()
         .for_each(|reads| {
             println!("\x1b[0;33m================Processing {}================\x1b[0m", &reads.id);
-            let mut run = Runner::new(&dir, &reads);
+            let mut run = Runner::new(&reads);
 
             if reads.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
                 run.dual_idx = true;
             }
-
+            run.get_dir(&dir);
             run.get_out_fnames(); 
             run.display_settings();
             run.process_reads();
@@ -61,9 +61,9 @@ struct Runner<'a> {
 }
 
 impl<'a> Runner<'a> {
-    fn new(dir: &Path, input: &'a RawSeq) -> Self {
+    fn new(input: &'a RawSeq) -> Self {
         Self {
-            clean_dir: dir.join(&input.dir),
+            clean_dir: PathBuf::new(),
             dual_idx: false,
             out_r1: PathBuf::new(),
             out_r2: PathBuf::new(),
@@ -90,16 +90,41 @@ impl<'a> Runner<'a> {
         let stdout = io::stdout();
         let mut handle = stdout.lock();
         writeln!(handle, "\x1b[0;32mDONE!\x1b[0m").unwrap();
-    }   
+    }
+    
+    fn get_dir(&mut self, dir: &Path) {
+        if self.is_rename() {
+            self.clean_dir = dir.join(&self.reads.outname.as_ref().unwrap());
+        } else {
+            self.clean_dir = dir.join(&self.reads.dir);
+        }
+    }
 
     fn get_out_fnames(&mut self) {
         let outdir = self.clean_dir.join("trimmed_reads");
         fs::create_dir_all(&outdir).unwrap();
         
-        let r1 = self.reads.read_1.file_name().unwrap();
-        let r2 = self.reads.read_2.file_name().unwrap();
-        self.out_r1 = outdir.join(r1);
-        self.out_r2 = outdir.join(r2);
+        let out1 = self.reads.read_1.file_name().unwrap();
+        let out2 = self.reads.read_2.file_name().unwrap();
+
+        if self.is_rename() {
+            let out1 = self.rename_output(&out1.to_str().unwrap());
+            let out2 = self.rename_output(&out2.to_str().unwrap());
+            self.out_r1 = outdir.join(out1);
+            self.out_r2 = outdir.join(out2);
+        } else {
+            self.out_r1 = outdir.join(out1);
+            self.out_r2 = outdir.join(out2);
+        }
+    }
+
+    fn is_rename(&self) -> bool {
+        self.reads.outname.is_some()
+    }
+
+    fn rename_output(&self, outname: &str) -> String {
+        let target = self.reads.outname.as_ref().unwrap();
+        outname.replace(&self.reads.id, &target)
     }
 
     fn display_settings(&self) {

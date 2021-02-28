@@ -15,7 +15,7 @@ pub struct RawSeq {
     pub adapter_i7: Option<String>,
     pub dir: PathBuf,
     pub auto_idx: bool,
-    pub outname: Option<PathBuf>
+    pub outname: Option<String>
 }
 
 impl RawSeq {
@@ -114,7 +114,7 @@ impl RawSeq {
     }
 
     fn get_output_name(&mut self, fname: &str) {
-        self.outname = Some(PathBuf::from(fname));
+        self.outname = Some(fname.to_string());
     }
 
 }
@@ -183,7 +183,7 @@ fn get_adapter_rename(seq: &mut RawSeq, adapters: &[String]) {
             seq.get_output_name(&adapters[1]);
             seq.get_adapter_auto();
         }
-        
+
         3 => {
             seq.get_output_name(&adapters[1]);
             get_adapter_single(seq, &adapters[2]);

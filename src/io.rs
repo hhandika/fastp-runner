@@ -36,7 +36,7 @@ pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
 
             if is_rename {
                 writeln!(handle, "Target fname\t: {}", 
-                    r.outname.as_ref().unwrap().to_string_lossy()).unwrap() 
+                    r.outname.as_ref().unwrap()).unwrap();
             }
 
             writeln!(handle).unwrap();
