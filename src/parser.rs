@@ -36,7 +36,17 @@ impl RawSeq {
         self.id = String::from(id);
     }
 
-    fn get_dir(&mut self) {
+    fn get_dir(&mut self, is_id: bool, is_rename: bool) {
+        if !is_id && !is_rename {
+            self.dir = PathBuf::from(&self.id);
+        } else if is_rename {
+            self.dir = PathBuf::from(&self.outname.as_ref().unwrap());
+        } else {
+            self.create_dir_from_r1();
+        }
+    }
+
+    fn create_dir_from_r1(&mut self) {
         let fnames = String::from(
             self.read_1
                 .file_name()
@@ -137,14 +147,14 @@ pub fn parse_csv(input: &PathBuf, is_id: bool, is_rename: bool) -> Vec<RawSeq> {
             check_reads(&reads, &id);
             seq.get_id(&id);
             seq.get_reads(&reads);
-            seq.get_dir();
+            
             if is_rename {
                 get_adapter_rename(&mut seq, &lines);
             } else {
                 get_adapters(&mut seq, &lines);
             }
-            
 
+            seq.get_dir(is_id, is_rename);
             raw_seqs.push(seq);
             lcounts += 1;
         });
@@ -453,4 +463,21 @@ mod test {
         assert_eq!(true, is_insert_missing(seq));
     }
 
+    #[test]
+    fn target_dir_name_test() {
+        let input = PathBuf::from("test_files/test_rename.csv");
+        let is_rename = true;
+        let is_id = false;
+
+        let reads = parse_csv(&input, is_id, is_rename);
+
+        reads.iter()
+            .for_each(|r| {
+                let res = PathBuf::from("Rattus_rattus_XYZ12345");
+                let id = String::from("some_animals_XYZ12345");
+                assert_eq!(id, r.id);
+                assert_eq!(res, r.dir);
+                assert_eq!(true, r.auto_idx);
+            });
+    }
 }

@@ -29,12 +29,12 @@ pub fn clean_reads(reads: &[RawSeq]) {
     reads.iter()
         .for_each(|reads| {
             println!("\x1b[0;33m================Processing {}================\x1b[0m", &reads.id);
-            let mut run = Runner::new(&reads);
+            let mut run = Runner::new(&dir, &reads);
 
             if reads.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
                 run.dual_idx = true;
             }
-            run.get_dir(&dir);
+
             run.get_out_fnames(); 
             run.display_settings();
             run.process_reads();
@@ -48,7 +48,7 @@ fn check_dir_exists(dir: &Path) {
         panic!("CLEAN READ DIR EXISTS. PLEASE RENAME OR REMOVE IT");
     } else { // if not create one
         fs::create_dir_all(dir)
-        .expect("CAN'T CREATE CLEAN READ DIR");
+            .expect("CAN'T CREATE CLEAN READ DIR");
     }
 }
 
@@ -61,9 +61,9 @@ struct Runner<'a> {
 }
 
 impl<'a> Runner<'a> {
-    fn new(input: &'a RawSeq) -> Self {
+    fn new(dir: &Path, input: &'a RawSeq) -> Self {
         Self {
-            clean_dir: PathBuf::new(),
+            clean_dir: dir.join(&input.dir),
             dual_idx: false,
             out_r1: PathBuf::new(),
             out_r2: PathBuf::new(),
@@ -92,13 +92,13 @@ impl<'a> Runner<'a> {
         writeln!(handle, "\x1b[0;32mDONE!\x1b[0m").unwrap();
     }
     
-    fn get_dir(&mut self, dir: &Path) {
-        if self.is_rename() {
-            self.clean_dir = dir.join(&self.reads.outname.as_ref().unwrap());
-        } else {
-            self.clean_dir = dir.join(&self.reads.dir);
-        }
-    }
+    // fn get_dir(&mut self, dir: &Path) {
+    //     if self.is_rename() {
+    //         self.clean_dir = dir.join(&self.reads.outname.as_ref().unwrap());
+    //     } else {
+    //         self.clean_dir = dir.join(&self.reads.dir);
+    //     }
+    // }
 
     fn get_out_fnames(&mut self) {
         let outdir = self.clean_dir.join("trimmed_reads");
