@@ -1,4 +1,4 @@
-# Upcoming
+# v0.2.0
 - An option to rename the output files.
 - More details console output.
 
