@@ -1,9 +1,20 @@
 use std::collections::HashMap;
 
-pub fn insert_tag(seq: &str, insert: &str) -> String {
-    let trans = translate_dna(insert);
-
+pub fn insert_tag(seq: &str, ins: &str) -> String {
+    let insert = ins.to_uppercase();
+    let trans = translate_dna(&insert);
+    check_tag(&insert);
     seq.replace("*", &trans).to_uppercase()
+}
+
+fn check_tag(insert: &str) {
+    insert.chars()
+        .for_each(| dna | 
+            match dna {
+                'A' | 'G' | 'T' | 'C' => (),
+                _ => panic!("INVALID TAG DNA SEQUENCES")
+            }
+        )
 }
 
 fn translate_dna(insert: &str) -> String {
@@ -22,8 +33,8 @@ fn translate_dna(insert: &str) -> String {
 }
 
 fn get_dna_libs() -> HashMap<char, char> {
-    let dna = String::from("AGTC");
-    let comp = String::from("TCAG");
+    let dna = String::from("ATGC");
+    let comp = String::from("TACG");
 
     let mut trans = HashMap::new();
 
@@ -34,4 +45,43 @@ fn get_dna_libs() -> HashMap<char, char> {
         });
     
     trans
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn invalid_tag_test() {
+        let tag = "ATGTTABCG";
+
+        check_tag(&tag);
+    }
+
+    #[test]
+    fn tag_insertion_test() {
+        let tag = "ATG";
+        let seq = "ATTTGT*C";
+        let res = String::from("ATTTGTTACC");
+
+        assert_eq!(res, insert_tag(seq, tag));
+    }
+
+    #[test]
+    fn tag_insertion_lowercase_test() {
+        let tag = "atG";
+        let seq = "ATTTGT*C";
+        let res = String::from("ATTTGTTACC");
+
+        assert_eq!(res, insert_tag(seq, tag));
+    }
+
+    #[test]
+    fn translate_dna_test() {
+        let dna = "ATGC";
+        let res = String::from("TACG");
+
+        assert_eq!(res, translate_dna(dna));
+    }
 }
