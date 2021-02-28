@@ -167,7 +167,7 @@ pub fn parse_csv(input: &PathBuf, is_id: bool, is_rename: bool) -> Vec<RawSeq> {
 fn check_reads(reads: &[PathBuf], id: &str) {
     match reads.len() {
         0 => panic!("CANNOT FIND FILE {}. \
-                USE FLAG --id IF YOU USE THE FILE ID.", id),
+                USE THE --id FLAG IF YOU USE THE FILE ID.", id),
         2 => (),
         _ => panic!("REQUIRED TWO READS FOR {}. FOUND: {:?}", id, reads),
     }
@@ -244,7 +244,7 @@ fn get_insert_single(seq: &mut RawSeq, i5: &str, i7: &str, insert: &str) {
         let adapter_i5 = itru::insert_tag(i5, insert);  
         seq.get_adapter_dual(&adapter_i5, &adapter_i7);
     } else {
-        panic!("TOO MANY COLUMNS!");
+        panic!("INVALID COLUMNS FOR {}!", seq.id);
     }
 }
 
@@ -317,7 +317,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "CANNOT FIND FILE ABC1234. USE FLAG --id IF YOU USE THE FILE ID.")]
+    #[should_panic(expected = "CANNOT FIND FILE ABC1234. USE THE --id FLAG IF YOU USE THE FILE ID.")]
     fn check_reads_panic_msg_test() {
         let id = "ABC1234";
         let reads = Vec::new();
