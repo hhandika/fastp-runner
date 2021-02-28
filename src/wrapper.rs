@@ -81,20 +81,11 @@ impl Runner {
 
     fn process_reads(&mut self) { 
         let spin = self.set_spinner();
-        
-        let out: Output;
-        if self.dual_idx {
-            out = self.call_fastp_dual_idx();
-        } else if self.auto_idx {
-            out = self.call_fastp_auto_idx();
-        } else {
-            out = self.call_fastp_single_idx();
-        }
-        
+        let out = self.call_fastp();
         let mut reports = FastpReports::new(&self.clean_dir);
+        
         reports.check_fastp_status(&out);
         reports.write_stdout(&out);
-
         self.try_creating_symlink();
         reports.reorganize_reports();
         spin.stop();
@@ -147,59 +138,45 @@ impl Runner {
         Spinner::new(Spinners::Moon, msg)
     }
 
-    fn call_fastp_auto_idx(&self)-> Output {
-        let out = Command::new("fastp")
-            .arg("-i")
+    fn call_fastp(&self) -> Output {
+        let mut out = Command::new("fastp");
+
+        out.arg("-i")
             .arg(self.in_r1.clone())
             .arg("-I")
             .arg(self.in_r2.clone())
-            .arg("--detect_adapter_for_pe")
-            .arg("-o")
             .arg(self.out_r1.clone())
             .arg("-O")
-            .arg(self.out_r2.clone())
-            .output()
-            .unwrap();
-    
-        out
+            .arg(self.out_r2.clone());
+
+        self.set_fastp_idx(&mut out);
+        out.output().unwrap()
     }
 
-    fn call_fastp_single_idx(&self) -> Output {
-        let out: Output = Command::new("fastp")
-            .arg("-i")
-            .arg(self.in_r1.clone())
-            .arg("-I")
-            .arg(self.in_r2.clone())
-            .arg("--adapter_sequence")
-            .arg(String::from(self.adapter_i5.as_ref().unwrap()))
-            .arg("-o")
-            .arg(self.out_r1.clone())
-            .arg("-O")
-            .arg(self.out_r2.clone())
-            .output()
-            .unwrap();
-    
-        out
+    fn set_fastp_idx(&self, out: &mut Command) {
+        if self.dual_idx {
+            self.set_fastp_dual_idx(out);
+        } else if self.auto_idx {
+            self.set_fastp_auto_idx(out);
+        } else {
+            self.set_fastp_single_idx(out);
+        }
     }
 
-    fn call_fastp_dual_idx(&self) -> Output {
-        let out = Command::new("fastp")
-            .arg("-i")
-            .arg(self.in_r1.clone())
-            .arg("-I")
-            .arg(self.in_r2.clone())
-            .arg("--adapter_sequence")
+    fn set_fastp_auto_idx(&self, out: &mut Command) {
+        out.arg("--detect_adapter_for_pe");
+    }
+
+    fn set_fastp_single_idx(&self, out: &mut Command) {
+        out.arg("--adapter_sequence")
+            .arg(String::from(self.adapter_i5.as_ref().unwrap()));
+    }
+
+    fn set_fastp_dual_idx(&self, out: &mut Command) {
+        out.arg("--adapter_sequence")
             .arg(String::from(self.adapter_i5.as_ref().unwrap()))
             .arg("--adapter_sequence_r2")
-            .arg(String::from(self.adapter_i7.as_ref().unwrap()))
-            .arg("-o")
-            .arg(self.out_r1.clone())
-            .arg("-O")
-            .arg(self.out_r2.clone())
-            .output()
-            .unwrap();
-    
-        out
+            .arg(String::from(self.adapter_i7.as_ref().unwrap()));
     }
 
     fn try_creating_symlink(&self) {
