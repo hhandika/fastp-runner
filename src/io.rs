@@ -10,7 +10,7 @@ pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
     let stdout = io::stdout();
     let mut handle = io::BufWriter::new(stdout);
 
-    println!();
+    writeln!(handle).unwrap();
     reads.iter()
         .for_each(|r| {
             writeln!(handle, "\x1b[0;32mID\t\t: {}\x1b[0m", r.id).unwrap();
