@@ -28,7 +28,7 @@ pub fn clean_reads(reads: &[RawSeq]) {
     check_dir_exists(&dir);
     reads.iter()
         .for_each(|reads| {
-            println!("================\x1b[0;34mProcessing {}\x1b[0m================", &reads.id);
+            println!("================\x1b[0;34 mProcessing {}\x1b[0m================", &reads.id);
             let mut run = Runner::new(&dir, &reads);
             match reads.adapter_i7.as_ref() { // Check if i7 contains sequence
                 Some(_) => run.dual_idx = true, // if yes -> dual index
@@ -108,7 +108,7 @@ impl Runner {
     }
 
     fn get_out_fnames(&mut self) {
-        let outdir = self.clean_dir.join("trimmed-reads");
+        let outdir = self.clean_dir.join("trimmed_reads");
         fs::create_dir_all(&outdir).unwrap();
         
         let r1 = self.in_r1.file_name().unwrap();
