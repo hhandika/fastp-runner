@@ -54,28 +54,20 @@ fn check_dir_exists(dir: &Path) {
 
 struct Runner {
     clean_dir: PathBuf,
-    adapter_i5: Option<String>,
-    adapter_i7: Option<String>,
     dual_idx: bool,
-    auto_idx: bool,
-    in_r1: PathBuf,
-    in_r2: PathBuf,
     out_r1: PathBuf,
-    out_r2: PathBuf
+    out_r2: PathBuf,
+    reads: RawSeq,
 }
 
 impl Runner {
     fn new(dir: &Path, input: &RawSeq) -> Self {
         Self {
             clean_dir: dir.join(&input.dir),
-            adapter_i5: input.adapter_i5.clone(),
-            adapter_i7: input.adapter_i7.clone(),
             dual_idx: false,
-            auto_idx: input.auto_idx,
-            in_r1: input.read_1.clone(),
-            in_r2: input.read_2.clone(),
             out_r1: PathBuf::new(),
             out_r2: PathBuf::new(),
+            reads: input.clone(),
         }
     }
 
@@ -103,8 +95,8 @@ impl Runner {
         let outdir = self.clean_dir.join("trimmed_reads");
         fs::create_dir_all(&outdir).unwrap();
         
-        let r1 = self.in_r1.file_name().unwrap();
-        let r2 = self.in_r2.file_name().unwrap();
+        let r1 = self.reads.read_1.file_name().unwrap();
+        let r2 = self.reads.read_2.file_name().unwrap();
         self.out_r1 = outdir.join(r1);
         self.out_r2 = outdir.join(r2);
     }
@@ -115,18 +107,18 @@ impl Runner {
         
         // writeln!(buff).unwrap();
         writeln!(buff, "Target dir\t: {}", &self.clean_dir.to_string_lossy()).unwrap();
-        writeln!(buff, "Input R1\t: {}", &self.in_r1.to_string_lossy()).unwrap();
-        writeln!(buff, "Input R2\t: {}", &self.in_r2.to_string_lossy()).unwrap();
+        writeln!(buff, "Input R1\t: {}", &self.reads.read_1.to_string_lossy()).unwrap();
+        writeln!(buff, "Input R2\t: {}", &self.reads.read_2.to_string_lossy()).unwrap();
         writeln!(buff, "Output R1\t: {}", &self.out_r1.to_string_lossy()).unwrap();
         writeln!(buff, "Output R2\t: {}", &self.out_r2.to_string_lossy()).unwrap();
         
-        if self.auto_idx {
+        if self.reads.auto_idx {
             writeln!(buff, "Adapters\t: AUTO-DETECT").unwrap();
         } else if !self.dual_idx {
-            writeln!(buff, "Adapters\t: {}", self.adapter_i5.as_ref().unwrap()).unwrap();
+            writeln!(buff, "Adapters\t: {}", self.reads.adapter_i5.as_ref().unwrap()).unwrap();
         } else {
-            writeln!(buff, "Adapter i5\t: {}", self.adapter_i5.as_ref().unwrap()).unwrap();
-            writeln!(buff, "Adapters i7\t: {}", self.adapter_i7.as_ref().unwrap()).unwrap();
+            writeln!(buff, "Adapter i5\t: {}", self.reads.adapter_i5.as_ref().unwrap()).unwrap();
+            writeln!(buff, "Adapters i7\t: {}", self.reads.adapter_i7.as_ref().unwrap()).unwrap();
         }
 
         writeln!(buff).unwrap();
@@ -142,9 +134,9 @@ impl Runner {
         let mut out = Command::new("fastp");
 
         out.arg("-i")
-            .arg(self.in_r1.clone())
+            .arg(self.reads.read_1.clone())
             .arg("-I")
-            .arg(self.in_r2.clone())
+            .arg(self.reads.read_2.clone())
             .arg(self.out_r1.clone())
             .arg("-O")
             .arg(self.out_r2.clone());
@@ -156,7 +148,7 @@ impl Runner {
     fn set_fastp_idx(&self, out: &mut Command) {
         if self.dual_idx {
             self.set_fastp_dual_idx(out);
-        } else if self.auto_idx {
+        } else if self.reads.auto_idx {
             self.set_fastp_auto_idx(out);
         } else {
             self.set_fastp_single_idx(out);
@@ -169,14 +161,14 @@ impl Runner {
 
     fn set_fastp_single_idx(&self, out: &mut Command) {
         out.arg("--adapter_sequence")
-            .arg(String::from(self.adapter_i5.as_ref().unwrap()));
+            .arg(String::from(self.reads.adapter_i5.as_ref().unwrap()));
     }
 
     fn set_fastp_dual_idx(&self, out: &mut Command) {
         out.arg("--adapter_sequence")
-            .arg(String::from(self.adapter_i5.as_ref().unwrap()))
+            .arg(String::from(self.reads.adapter_i5.as_ref().unwrap()))
             .arg("--adapter_sequence_r2")
-            .arg(String::from(self.adapter_i7.as_ref().unwrap()));
+            .arg(String::from(self.reads.adapter_i7.as_ref().unwrap()));
     }
 
     fn try_creating_symlink(&self) {
@@ -187,8 +179,8 @@ impl Runner {
             println!("Skip creating symlink in dir {} for {} and {}. \
                 Operating system is not supported.", 
                 &self.clean_dir.to_string_lossy(), 
-                &self.in_r1.to_string_lossy(), 
-                &self.in_r2.to_string_lossy());
+                &self.reads.read_1.to_string_lossy(), 
+                &self.reads.read_2.to_string_lossy());
         }
     }
     
@@ -197,11 +189,11 @@ impl Runner {
         let symdir = self.clean_dir.join("raw_read_symlinks");
         fs::create_dir_all(&symdir).unwrap();
     
-        let path_r1 = symdir.join(self.in_r1.file_name().unwrap());
-        let path_r2 = symdir.join(self.in_r2.file_name().unwrap());
+        let path_r1 = symdir.join(self.reads.read_1.file_name().unwrap());
+        let path_r2 = symdir.join(self.reads.read_2.file_name().unwrap());
     
-        unix::fs::symlink(&self.in_r1, path_r1).unwrap();
-        unix::fs::symlink(&self.in_r2, path_r2).unwrap();
+        unix::fs::symlink(&self.reads.read_1, path_r1).unwrap();
+        unix::fs::symlink(&self.reads.read_2, path_r2).unwrap();
     
         Ok(())
     }
