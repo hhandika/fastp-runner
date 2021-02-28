@@ -14,7 +14,6 @@ pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
     reads.iter()
         .for_each(|r| {
             writeln!(handle, "\x1b[0;32mID\t\t: {}\x1b[0m", r.id).unwrap();
-            writeln!(handle, "Target Dir\t: {}", r.dir.to_string_lossy()).unwrap();
             writeln!(handle, "Read 1\t\t: {}", r.read_1.to_string_lossy()).unwrap();
             writeln!(handle, "Read 2\t\t: {}", r.read_2.to_string_lossy()).unwrap();
 
@@ -33,7 +32,8 @@ pub fn dry_run(input: &PathBuf, is_id: bool, is_rename: bool) {
                     }
                 }
             };
-
+            
+            writeln!(handle, "Target Dir\t: {}", r.dir.to_string_lossy()).unwrap();
             if is_rename {
                 writeln!(handle, "Target fname\t: {}", 
                     r.outname.as_ref().unwrap()).unwrap();
