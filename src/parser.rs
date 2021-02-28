@@ -244,8 +244,7 @@ fn get_insert_dual(
     i7: &str, 
     in_i5: &str,
     in_i7: &str
-    )
-{
+){
     let i5 = itru::insert_tag(i5, in_i5);
     let i7 = itru::insert_tag(i7, in_i7);
     seq.get_adapter_dual(&i5, &i7);
