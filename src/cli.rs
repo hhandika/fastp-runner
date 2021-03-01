@@ -8,7 +8,7 @@ use crate::cleaner;
 pub fn get_cli(version: &str) {
     let args = App::new("renamer")
         .version(version)
-        .about("Batch adapter cleaning using fastp")
+        .about("Batch adapter trimming and raw-read sequence cleaning using fastp")
         .author("Heru Handika <hhandi1@lsu.edu>")
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(
