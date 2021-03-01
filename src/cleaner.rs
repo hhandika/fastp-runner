@@ -91,14 +91,6 @@ impl<'a> Runner<'a> {
         let mut handle = stdout.lock();
         writeln!(handle, "\x1b[0;32mDONE!\x1b[0m").unwrap();
     }
-    
-    // fn get_dir(&mut self, dir: &Path) {
-    //     if self.is_rename() {
-    //         self.clean_dir = dir.join(&self.reads.outname.as_ref().unwrap());
-    //     } else {
-    //         self.clean_dir = dir.join(&self.reads.dir);
-    //     }
-    // }
 
     fn get_out_fnames(&mut self) {
         let outdir = self.clean_dir.join("trimmed_reads");
