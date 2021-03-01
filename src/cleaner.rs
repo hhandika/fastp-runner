@@ -45,7 +45,7 @@ pub fn clean_reads(reads: &[RawSeq]) {
 
 fn check_dir_exists(dir: &Path) {
     if dir.exists() {
-        panic!("CLEAN READ DIR EXISTS. PLEASE RENAME OR REMOVE IT");
+        panic!("{:?} DIR EXISTS. PLEASE RENAME OR REMOVE IT", dir);
     } else { // if not create one
         fs::create_dir_all(dir)
             .expect("CAN'T CREATE CLEAN READ DIR");
