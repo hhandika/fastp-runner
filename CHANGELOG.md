@@ -1,3 +1,6 @@
+# v0.3.1
+- Allow for costum fastp commands
+
 # v0.2.1
 - Fix program name error in the command line helps
 - Improve error messages

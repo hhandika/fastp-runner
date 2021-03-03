@@ -16,6 +16,7 @@ pub struct RawSeq {
     pub adapter_i7: Option<String>,
     pub outname: Option<String>,
     pub auto_idx: bool,
+    pub command: Option<String>,
 }
 
 impl RawSeq {
@@ -29,6 +30,7 @@ impl RawSeq {
             adapter_i7: None,
             outname: None,
             auto_idx: false,
+            command: None,
         }
     }
 
@@ -126,6 +128,10 @@ impl RawSeq {
     fn get_output_name(&mut self, fname: &str) {
         self.outname = Some(fname.to_string());
     }
+
+    // fn get_costum_commands(&mut self, command: &str) {
+
+    // }
 
 }
 
