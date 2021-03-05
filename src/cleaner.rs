@@ -27,11 +27,11 @@ pub fn clean_reads(reads: &[RawSeq]) {
     let dir = Path::new("clean_reads");
     check_dir_exists(&dir);
     reads.iter()
-        .for_each(|reads| {
-            println!("\x1b[0;33m================Processing {}================\x1b[0m", &reads.id);
-            let mut run = Runner::new(&dir, &reads);
+        .for_each(|read| {
+            println!("\x1b[0;33m================Processing {}================\x1b[0m", &read.id);
+            let mut run = Runner::new(&dir, read);
 
-            if reads.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
+            if read.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
                 run.dual_idx = true;
             }
 
