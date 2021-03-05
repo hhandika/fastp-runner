@@ -209,12 +209,14 @@ impl<'a> Runner<'a> {
     fn create_symlink(&self) -> Result<()> {
         let symdir = self.clean_dir.join("raw_read_symlinks");
         fs::create_dir_all(&symdir)?;
-    
+        
+        let abs_r1 = self.reads.read_1.canonicalize().unwrap();
+        let abs_r2 = self.reads.read_2.canonicalize().unwrap();
         let path_r1 = symdir.join(self.reads.read_1.file_name().unwrap());
         let path_r2 = symdir.join(self.reads.read_2.file_name().unwrap());
     
-        unix::fs::symlink(&self.reads.read_1, path_r1)?;
-        unix::fs::symlink(&self.reads.read_2, path_r2)?;
+        unix::fs::symlink(abs_r1, path_r1)?;
+        unix::fs::symlink(abs_r2, path_r2)?;
     
         Ok(())
     }
