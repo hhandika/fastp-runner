@@ -1,5 +1,7 @@
 # v0.3.1
 - Allow for costum fastp commands
+- Better execution time format
+- Fix symlink errors
 
 # v0.2.1
 - Fix program name error in the command line helps
