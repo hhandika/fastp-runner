@@ -7,6 +7,7 @@ mod cleaner;
 mod io;
 mod itru;
 mod parser;
+mod utils;
 
 use std::time::Instant;
 
@@ -18,6 +19,11 @@ fn main() {
     cli::get_cli(&version);
     let duration = time.elapsed();
 
-    println!("Execution time: {:?}", duration);
+    if duration.as_secs() < 60 {
+        println!("Execution time: {:?}", duration);
+    } else {
+        utils::print_formatted_duration(duration.as_secs());
+    }
+    
     println!("Thank you for using fastp-runner v{} 😊", &version);
 }
