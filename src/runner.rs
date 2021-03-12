@@ -10,6 +10,7 @@ use std::os::unix;
 use spinners::{Spinner, Spinners};
 
 use crate::parser::RawSeq;
+use crate::utils;
 
 pub fn check_fastp() {
     let out = Command::new("fastp")
@@ -28,7 +29,6 @@ pub fn clean_reads(reads: &[RawSeq]) {
     check_dir_exists(&dir);
     reads.iter()
         .for_each(|read| {
-            println!("\x1b[0;33m================Processing {}================\x1b[0m", &read.id);
             let mut run = Runner::new(&dir, read);
 
             if read.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
@@ -69,7 +69,8 @@ impl<'a> Runner<'a> {
         }
     }
 
-    fn process_reads(&mut self) { 
+    fn process_reads(&mut self) {
+        utils::print_header(&self.reads.id); 
         self.get_out_fnames(); 
         self.display_settings().unwrap();
         let spin = self.set_spinner();
@@ -122,8 +123,7 @@ impl<'a> Runner<'a> {
     fn display_settings(&self) -> Result<()> {
         let stdout = io::stdout();
         let mut buff = io::BufWriter::new(stdout);
-        
-        // writeln!(buff).unwrap();
+
         writeln!(buff, "Target dir\t: {}", &self.clean_dir.to_string_lossy())?;
         writeln!(buff, "Input R1\t: {}", &self.reads.read_1.to_string_lossy())?;
         writeln!(buff, "Input R2\t: {}", &self.reads.read_2.to_string_lossy())?;
