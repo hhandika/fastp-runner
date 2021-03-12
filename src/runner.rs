@@ -35,8 +35,6 @@ pub fn clean_reads(reads: &[RawSeq]) {
                 run.dual_idx = true;
             }
 
-            run.get_out_fnames(); 
-            run.display_settings().unwrap();
             run.process_reads();
         });
 
@@ -72,6 +70,8 @@ impl<'a> Runner<'a> {
     }
 
     fn process_reads(&mut self) { 
+        self.get_out_fnames(); 
+        self.display_settings().unwrap();
         let spin = self.set_spinner();
         let out = self.call_fastp();
         
