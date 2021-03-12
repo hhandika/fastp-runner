@@ -5,7 +5,7 @@ use std::io::prelude::*;
 
 use glob::{glob_with, MatchOptions};
 
-use crate::itru;
+use crate::tag;
 
 pub struct RawSeq {
     pub id: String, 
@@ -236,7 +236,7 @@ fn get_adapter_single(seq: &mut RawSeq, adapters: &str) {
 fn get_adapter_dual(seq: &mut RawSeq, i5: &str, i7: &str) {
     let adapter_i5 = i5.to_uppercase();
     if is_insert_missing(&adapter_i5) { // i7 is a tag
-        let adapter_i5 = itru::insert_tag(i5, i7); 
+        let adapter_i5 = tag::insert_tag(i5, i7); 
         seq.get_adapter_single(&adapter_i5);
     } else {
         let adapter_i7 = i7.to_uppercase();
@@ -247,7 +247,7 @@ fn get_adapter_dual(seq: &mut RawSeq, i5: &str, i7: &str) {
 fn get_insert_single(seq: &mut RawSeq, i5: &str, i7: &str, insert: &str) {
     let adapter_i7 = i7.to_uppercase();
     if is_insert_missing(i5) {
-        let adapter_i5 = itru::insert_tag(i5, insert);  
+        let adapter_i5 = tag::insert_tag(i5, insert);  
         seq.get_adapter_dual(&adapter_i5, &adapter_i7);
     } else {
         panic!("INVALID COLUMNS FOR {}!", seq.id);
@@ -261,8 +261,8 @@ fn get_insert_dual(
     in_i5: &str,
     in_i7: &str
 ){
-    let i5 = itru::insert_tag(i5, in_i5);
-    let i7 = itru::insert_tag(i7, in_i7);
+    let i5 = tag::insert_tag(i5, in_i5);
+    let i7 = tag::insert_tag(i7, in_i7);
     seq.get_adapter_dual(&i5, &i7);
 
 }

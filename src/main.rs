@@ -3,10 +3,10 @@
 // MIT
 
 mod cli;
-mod cleaner;
 mod io;
-mod itru;
 mod parser;
+mod runner;
+mod tag;
 mod utils;
 
 use std::time::Instant;

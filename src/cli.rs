@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{App, AppSettings, Arg, ArgMatches};
 
 use crate::io;
-use crate::cleaner;
+use crate::runner;
 
 pub fn get_cli(version: &str) {
     let args = App::new("fastp-runner")
@@ -54,7 +54,7 @@ pub fn get_cli(version: &str) {
 
     match args.subcommand() {
         ("clean", Some(clean_matches)) => run_fastp_clean(clean_matches, version),
-        ("check", Some(_)) => cleaner::check_fastp(),
+        ("check", Some(_)) => runner::check_fastp(),
         _ => (),
     };
 }
