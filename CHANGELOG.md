@@ -1,3 +1,6 @@
+# v0.3.2
+- Fix unequal header length.
+
 # v0.3.1
 - Allow for costum fastp commands
 - Better execution time format
