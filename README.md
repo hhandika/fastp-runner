@@ -91,7 +91,9 @@ fastp_reports/
 ├── fastp.json
 └── fastp.log
 ```
-The html and json files contain similar information about sequence quality before and after cleaning for human to view and for machine to process, respectively. The log file is terminal output that you would see if you run fastp directly. `fastp-runner` removes this ouput from terminal to reduce clutter and redirect it to a file. If there is an error when fastp process the file, fastp-runner will also display fastp ouput in the terminal for your convenient.   
+The html and json files contain similar information about sequence quality before and after cleaning for human to view and for machine to process, respectively. A fastp html sample output can be found [here](http://opengene.org/fastp/fastp.html).
+
+The log file is terminal output that you would see if you run fastp directly. `fastp-runner` removes this ouput from terminal to reduce clutter and redirect it to a file. If there is an error when fastp process the file, fastp-runner will also display fastp ouput in the terminal for your convenient.   
 
 # Installation
 
