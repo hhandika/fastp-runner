@@ -101,7 +101,7 @@ If the first three part of your filename is your sample name, such as genus_epit
 |ABCD12345|
 |XYZ12456 |
 
-You can also pass your adapter sequence. In our test, there is data quality differences between letting fastp detects the adapter versus providing the adapter sequences in the config files. By providing adapter sequence in the config file only help the program to run faster. To provide adapater sequence, the config file will be as below. If you use the sequence name, replace the id with the sequence name.
+You can also pass your adapter sequence. In our test, there is no data quality differences between letting fastp detects the adapter versus providing the adapter sequences in the config files. By providing adapter sequence in the config file only help the program to run faster. To provide adapater sequence, the config file will be as below. If you use the sequence name, replace the id with the sequence name.
 
 For cvs file with a single adapter:
 | id        |   i7                | 
