@@ -83,6 +83,13 @@ The program folder structure follows [phyluce](https://phyluce.readthedocs.io/en
 └── raw_reads
 ```
 
+Your cleaned reads are saved in the `trimmed_reads` folder for each sample.
+```
+trimmed_reads/
+├── Bulimus_bagobus_ABCD12345_R1.fastq.gz
+└── Bulimus_bagobus_ABCD12345_R2.fastq.gz
+``` 
+
 The fastp_reports consist of three files:
 
 ```
