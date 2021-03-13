@@ -58,7 +58,11 @@ You can also use new name for the target output. The input file will be as below
 |Bunomys_andrewsi_CDEF1245  | Bunomys_andrewsi_CDEF1245_sulawesi    |
 |Bunomys_andrewsi_XYZ12345  | Bunomys_andrewsi_XYZ12345_sulawesi    |
 
+You need to pass the flag `--rename` to rename the file. The command will be as below:
 
+```
+ftr clean -i raw_reads/config.csv --rename
+```
 
 # Installation
 
