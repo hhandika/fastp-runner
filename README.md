@@ -5,7 +5,7 @@
 A tool for batch processing NGS data cleaning and adapter trimming using Fastp. The input is a simple csv file. The program allow auto detection.  
 
 # Quick Start
-`fastp-runner` is a single executable application. See details installation below for more details. You will also need fastp to use fastp-runner. After you install fastp-runner and fastp, check to see whether fastp-runner can detect fastp installation.
+`fastp-runner` is a single executable application. See the installation instruction [below](#installation) for more details. You will also need fastp to use fastp-runner. After you install fastp-runner and fastp, check to see whether fastp-runner can detect fastp installation.
 
 ```
 ftr check
