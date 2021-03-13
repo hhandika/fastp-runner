@@ -5,12 +5,12 @@
 A tool for batch processing NGS data cleaning and adapter trimming using Fastp. The input is a simple csv file. The program allow auto detection.  
 
 # Quick Start
-`fastp-runner` is a single executable application. See the installation instruction [below](#installation) for more details. You will also need fastp to use fastp-runner. After you install fastp-runner and fastp, check to see whether fastp-runner can detect fastp installation.
+`fastp-runner` is a single executable application. See the installation instruction [below](#installation) for more details. You will also need [fastp](https://github.com/OpenGene/fastp) to use fastp-runner. After you install fastp-runner and fastp, check to see whether fastp-runner can detect fastp installation.
 
 ```
 ftr check
 ```
-It will show the fastp version you have installed in your system.
+It will show the fastp version installed in your computer if the program can detect it.
 
 ```
 [OK]    fastp 0.20.0
@@ -29,7 +29,7 @@ raw_reads/
 └── config.csv
 ```
 
-All your raw reads files should be in the same folder, including the config file. For most user, the config file is a simple csv file that contains your sequence names. Fastp will auto detect the adapter sequences in your reads. For example above, our config file will be as below:
+All your raw reads files should be in the same folder, including the config file. For most user, the config file is a one-column csv file that contains your sequence names. More input options are available [see below](#input-file). Fastp will auto detect the adapter sequences in your reads. For example above, our config file will be as below:
 
 | samples                   |
 |---------------------------|
@@ -37,8 +37,7 @@ All your raw reads files should be in the same folder, including the config file
 |Bunomys_andrewsi_CDEF1245  |
 |Bunomys_andrewsi_XYZ12345  |
 
-
-You then can do dry-run to check if the program accurately detects your sequencing reads.
+After preparing the config file, you can do dry-run to check if the program accurately detects your sequencing reads.
 
 ```
 ftr clean -i raw_reads/config.csv --dry
@@ -50,7 +49,7 @@ To process your reads, the command is as below:
 ftr clean -i raw_reads/config.csv
 ```
 
-You can also use new name for the target output. The input file will be as below:
+You can also use new name for the clean read outputs. The input file will be as below:
 
 | samples                   | new_names                             |
 |---------------------------|---------------------------------------|
@@ -58,11 +57,41 @@ You can also use new name for the target output. The input file will be as below
 |Bunomys_andrewsi_CDEF1245  | Bunomys_andrewsi_CDEF1245_sulawesi    |
 |Bunomys_andrewsi_XYZ12345  | Bunomys_andrewsi_XYZ12345_sulawesi    |
 
-You need to pass the flag `--rename` to rename the file. The command will be as below:
+You need to pass the flag `--rename` to rename the files. The command will be as below:
 
 ```
 ftr clean -i raw_reads/config.csv --rename
 ```
+
+The program folder structure follows [phyluce](https://phyluce.readthedocs.io/en/latest/) pipeline folder structure for full compatibility with the program. Following our example, the final folder structure is as below:
+
+```
+.
+├── clean_reads
+│   ├── Bulimus_bagobus_ABCD12345
+│   │   ├── fastp_reports
+│   │   ├── raw_read_symlinks
+│   │   └── trimmed_reads
+│   ├── Bunomys_andrewsi_CDEF1245
+│   │   ├── fastp_reports
+│   │   ├── raw_read_symlinks
+│   │   └── trimmed_reads
+│   └── Bunomys_andrewsi_XYZ12345
+│       ├── fastp_reports
+│       ├── raw_read_symlinks
+│       └── trimmed_reads
+└── raw_reads
+```
+
+The fastp_reports consist of three files:
+
+```
+fastp_reports/
+├── fastp.html
+├── fastp.json
+└── fastp.log
+```
+The html and json files contain similar information about sequence quality before and after cleaning for human to view and for machine to process, respectively. The log file is terminal output that you would see if you run fastp directly. `fastp-runner` removes this ouput from terminal to reduce clutter and redirect it to a file. If there is an error when fastp process the file, fastp-runner will also display fastp ouput in the terminal for your convenient.   
 
 # Installation
 
