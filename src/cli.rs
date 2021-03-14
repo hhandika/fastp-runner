@@ -45,7 +45,7 @@ pub fn get_cli(version: &str) {
                 .arg(
                     Arg::with_name("rename")
                         .long("rename")
-                        .help("Checks if the program detect the correct files")
+                        .help("Renames output files")
                         .takes_value(false)
                 )
         )
