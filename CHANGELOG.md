@@ -1,3 +1,6 @@
+# v0.3.3
+- Fix confusing command help messages.
+
 # v0.3.2
 - Fix unequal header length.
 
