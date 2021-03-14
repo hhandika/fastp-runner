@@ -196,11 +196,11 @@ FLAGS:
         --dry        Checks if the program detect the correct files
     -h, --help       Prints help information
         --id         Uses id instead of filenames
-        --rename     Checks if the program detect the correct files
+        --rename     Renames output files
     -V, --version    Prints version information
 
 OPTIONS:
-    -i, --input <INPUT>    Inputs a config fi
+    -i, --input <INPUT>    Inputs a config file
 ```
 
 # State of the Code
