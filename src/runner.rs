@@ -15,12 +15,12 @@ use crate::utils;
 pub fn check_fastp() {
     let out = Command::new("fastp")
         .arg("--version")
-        .output()
-        .expect("CANNOT FIND FASTP. IT MAY BE NOT PROPERLY INSTALLED.");
-    
-    if out.status.success() {
-        println!("[OK]\t{}\n", str::from_utf8(&out.stderr).unwrap().trim());
-    } 
+        .output();
+        
+        match out {
+            Ok(out) =>  println!("[OK]\t{}\n", str::from_utf8(&out.stderr).unwrap().trim()),
+            Err(_) => println!("[NOT FOUND]\tfastp"),
+        }
 
 }
 
