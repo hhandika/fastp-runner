@@ -48,6 +48,14 @@ pub fn get_cli(version: &str) {
                         .help("Renames output files")
                         .takes_value(false)
                 )
+
+                .arg(
+                    Arg::with_name("opts")
+                        .long("opts")
+                        .help("Sets optional SPAdes params")
+                        .takes_value(true)
+                        .value_name("OPTIONAL PARAMS")
+                )
         )
         
         .get_matches();
@@ -73,11 +81,24 @@ fn run_fastp_clean(matches: &ArgMatches, version: &str) {
             is_rename = true;
         }
 
+        let params = get_fastp_params(&matches);
+
         if matches.is_present("dry-run") {
             io::dry_run(&path, is_id, is_rename);
         } else {
             println!("Starting fastp-runner v{}...\n", version);
-            io::process_input(&path, is_id, is_rename);
+            io::process_input(&path, is_id, is_rename, &params);
         }
     } 
+}
+
+fn get_fastp_params(matches: &ArgMatches) -> Option<String> {
+    let mut params = None;
+    if matches.is_present("opts") {
+        let input = matches.value_of("opts").unwrap();
+        let args = input.replace("params=", "");
+        params = Some(String::from(args.trim()));
+    }
+
+    params
 }

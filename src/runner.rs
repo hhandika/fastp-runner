@@ -24,12 +24,12 @@ pub fn check_fastp() {
 
 }
 
-pub fn clean_reads(reads: &[RawSeq]) {
+pub fn clean_reads(reads: &[RawSeq], params: &Option<String>) {
     let dir = Path::new("clean_reads");
     check_dir_exists(&dir);
     reads.iter()
         .for_each(|read| {
-            let mut run = Runner::new(&dir, read);
+            let mut run = Runner::new(&dir, read, params);
 
             if read.adapter_i7.as_ref().is_some() { // Check if i7 contains sequence
                 run.dual_idx = true;
@@ -56,16 +56,22 @@ struct Runner<'a> {
     out_r1: PathBuf,
     out_r2: PathBuf,
     reads: &'a RawSeq,
+    params: &'a Option<String>,
 }
 
 impl<'a> Runner<'a> {
-    fn new(dir: &Path, input: &'a RawSeq) -> Self {
+    fn new(
+        dir: &Path, 
+        input: &'a RawSeq, 
+        params: &'a Option<String>
+    ) -> Self {
         Self {
             clean_dir: dir.join(&input.dir),
             dual_idx: false,
             out_r1: PathBuf::new(),
             out_r2: PathBuf::new(),
             reads: input,
+            params,
         }
     }
 
@@ -163,6 +169,11 @@ impl<'a> Runner<'a> {
             .arg(self.out_r2.clone());
 
         self.set_fastp_idx(&mut out);
+
+        if self.params.is_some() {
+            self.set_opt_params(&mut out);
+        }
+        
         out.output().unwrap()
     }
 
@@ -190,6 +201,10 @@ impl<'a> Runner<'a> {
             .arg(String::from(self.reads.adapter_i5.as_ref().unwrap()))
             .arg("--adapter_sequence_r2")
             .arg(String::from(self.reads.adapter_i7.as_ref().unwrap()));
+    }
+
+    fn set_opt_params(&self, out: &mut Command) {
+        out.arg(self.params.as_ref().unwrap());
     }
 
     fn try_creating_symlink(&self) {
