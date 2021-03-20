@@ -5,6 +5,15 @@
 
 A tool for batch processing NGS data cleaning and adapter trimming using Fastp. The input is a simple csv file. The program allow auto detection.  
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Input File](#input-file)
+  - [Commands](#commands)
+- [State of Code](#state-of-code)
+
 ## Quick Start
 
 `fastp-runner` is a single executable application. See the installation instruction [below](#installation) for more details. You will also need [fastp](https://github.com/OpenGene/fastp) to use fastp-runner. After you install fastp-runner and fastp, check to see whether fastp-runner can detect fastp installation.
@@ -138,7 +147,7 @@ It will display the program version if the program can find fastp, such as below
 [OK]    fastp 0.20.0
 ```
 
-## Input File
+### Input File
 
 fastp-runner accept a csv file. The header name is not important. It only needs to have a header file. Otherwise, the program will skip the first line. The order however is important.
 
@@ -173,7 +182,7 @@ The program will automatically insert the tag. It follows the algorithms used by
 |XYZ12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | ATGTCTC    | ATGTATG  |
 |ABC12345    | ATGTCTCTCTATATATAC*T | ATGTCTCTCTATATATGC*T  | GGGTCTC    | ATGTAAA  |
 
-## Commands
+### Commands
 
 Sub-commands available for fastp-runner:
 
